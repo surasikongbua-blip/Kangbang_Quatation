@@ -7,647 +7,1106 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <style>
-    body { font-family: 'Sarabun', sans-serif; }
+    :root {
+      --g-dark:  #0d3320;
+      --g-mid:   #166534;
+      --g-main:  #16a34a;
+      --g-light: #dcfce7;
+      --g-pale:  #f0fdf4;
+      --gold:    #c49a3c;
+      --txt-1:   #0f172a;
+      --txt-2:   #374151;
+      --txt-3:   #6b7280;
+      --txt-4:   #9ca3af;
+      --border:  #e5e7eb;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'IBM Plex Sans Thai', 'Sarabun', sans-serif;
+      background: #eaede8;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
 
-    /* =============== PRINT STYLES =============== */
+    /* ============ PRINT ============ */
     @media print {
-      body { background: white !important; }
+      body { background: white !important; padding: 0 !important; }
       .no-print { display: none !important; }
-      .print-page {
+      .doc-paper {
         box-shadow: none !important;
-        margin: 0 !important;
         border-radius: 0 !important;
-        padding: 32px !important;
+        width: 100% !important;
+        max-width: 100% !important;
       }
-      @page { margin: 10mm; size: A4; }
+      .paper-wrap { padding: 0 !important; }
+      @page { margin: 10mm 12mm; size: A4 portrait; }
     }
 
-    /* =============== DOCUMENT CARD =============== */
-    .print-page {
-      background: white;
-      width: 210mm;
-      min-height: 270mm;
+    /* ============ PAPER ============ */
+    .paper-wrap {
+      max-width: 860px;
       margin: 0 auto;
-      padding: 40px 44px;
-      box-shadow: 0 4px 40px rgba(0,0,0,0.10);
-      border-radius: 12px;
-      position: relative;
+      padding: 28px 16px 40px;
     }
 
-    /* Header accent bar */
-    .doc-accent-bar {
-      height: 5px;
-      background: linear-gradient(90deg, #166534 0%, #16a34a 60%, #4ade80 100%);
+    .doc-paper {
+      background: white;
       border-radius: 3px;
-      margin-bottom: 28px;
+      position: relative;
+      box-shadow:
+        0 1px 3px rgba(0,0,0,0.04),
+        0 8px 32px rgba(0,0,0,0.08),
+        0 32px 80px rgba(0,0,0,0.06);
+      overflow: hidden;
     }
 
-    /* Company logo placeholder */
-    .company-logo {
-      width: 64px;
-      height: 64px;
-      background: #166534;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      flex-shrink: 0;
-    }
-
-    /* Table styles */
-    .items-table { border-collapse: collapse; width: 100%; }
-    .items-table thead tr {
-      background: #14532d;
-      color: white;
-    }
-    .items-table thead th {
-      padding: 10px 12px;
-      font-size: 13px;
-      font-weight: 600;
-    }
-    .items-table tbody tr { border-bottom: 1px solid #f0fdf4; }
-    .items-table tbody tr:nth-child(even) { background: #f9fefb; }
-    .items-table tbody td { padding: 10px 12px; font-size: 13px; color: #374151; }
-
-    /* Total section */
-    .total-box {
-      background: linear-gradient(135deg, #14532d 0%, #166534 100%);
-      border-radius: 10px;
-      padding: 16px 24px;
-      color: white;
-    }
-
-    /* Status badge */
-    .status-badge {
-      display: inline-block;
-      padding: 3px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    /* Watermark for cancelled */
-    .watermark {
+    /* Left accent rule */
+    .doc-paper::before {
+      content: '';
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) rotate(-35deg);
-      font-size: 80px;
-      font-weight: 900;
-      color: rgba(239,68,68,0.08);
-      pointer-events: none;
-      white-space: nowrap;
-      letter-spacing: 8px;
-      z-index: 0;
+      left: 0; top: 0; bottom: 0;
+      width: 5px;
+      background: linear-gradient(180deg, var(--g-dark) 0%, var(--g-main) 55%, #4ade80 100%);
+      z-index: 2;
     }
 
-    /* Signature line */
-    .sig-line {
-      border-top: 1.5px solid #166534;
-      width: 180px;
+    /* ============ HEADER ============ */
+    .doc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 36px 44px 28px 52px;
+      background: linear-gradient(160deg, #fff 65%, #f7fdf8 100%);
+      border-bottom: 1px solid #e8f5e9;
+      gap: 16px;
+    }
+
+    .company-block { display: flex; align-items: flex-start; gap: 14px; }
+
+    /* Logo area — click to upload */
+    .logo-area {
+      width: 80px; height: 66px;
+      flex-shrink: 0;
+      cursor: pointer;
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--g-dark);
+      transition: box-shadow 0.2s;
+    }
+    .logo-area:hover .logo-hover-overlay { opacity: 1; }
+    .logo-area img { width: 100%; height: 100%; object-fit: contain; display: none; }
+    .logo-fallback {
+      font-size: 28px; color: white;
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 100%;
+    }
+    .logo-hover-overlay {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 3px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      color: white;
+      font-size: 18px;
+    }
+    .logo-hover-overlay span { font-size: 9px; font-weight: 700; letter-spacing: 1px; }
+
+    .company-text {}
+    .co-name {
+      font-size: 16px; font-weight: 700;
+      color: var(--g-dark);
+      letter-spacing: -0.2px;
+      margin-bottom: 5px;
+      line-height: 1.2;
+    }
+    .co-detail {
+      font-size: 11px;
+      color: var(--txt-3);
+      line-height: 1.75;
+    }
+
+    /* Doc title side */
+    .doc-title-block { text-align: right; flex-shrink: 0; }
+    .doc-en-label {
+      display: inline-block;
+      background: var(--g-dark);
+      color: rgba(255,255,255,0.85);
+      font-size: 9.5px; font-weight: 700;
+      letter-spacing: 3.5px;
+      padding: 4px 12px;
+      border-radius: 2px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .doc-th-title {
+      font-size: 32px; font-weight: 800;
+      color: var(--g-main);
+      line-height: 1;
+      letter-spacing: -0.5px;
+      margin-bottom: 16px;
+    }
+    .doc-meta { font-size: 12px; }
+    .doc-meta tr td { padding: 2.5px 0; vertical-align: middle; }
+    .doc-meta .lbl { color: var(--txt-4); padding-right: 14px; white-space: nowrap; }
+    .doc-meta .val { font-weight: 700; color: var(--txt-1); text-align: right; font-size: 12.5px; }
+
+    /* ============ DIVIDER ============ */
+    .h-rule {
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, #c8ecd0 20%, #c8ecd0 80%, transparent 100%);
+      margin: 0 52px;
+    }
+
+    /* ============ CUSTOMER ============ */
+    .customer-section {
+      padding: 20px 44px 20px 52px;
+      background: #fcfffe;
+      display: flex; align-items: flex-start; gap: 32px;
+    }
+    .cust-to-label {
+      font-size: 9.5px; font-weight: 700;
+      letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--g-main);
+      margin-bottom: 5px;
+    }
+    .cust-name {
+      font-size: 20px; font-weight: 700;
+      color: var(--txt-1);
+      margin-bottom: 7px;
+    }
+    .cust-details { display: flex; flex-wrap: wrap; gap: 14px; }
+    .cust-detail {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--txt-2);
+    }
+    .cust-icon {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--g-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; flex-shrink: 0;
+    }
+
+    /* ============ ITEMS ============ */
+    .items-section { padding: 0 44px 0 52px; margin-top: 24px; }
+
+    .items-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .items-table thead th {
+      background: var(--g-dark);
+      color: rgba(255,255,255,0.88);
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.3px;
+      padding: 11px 13px;
+    }
+    .items-table thead th:first-child { border-radius: 4px 0 0 0; }
+    .items-table thead th:last-child  { border-radius: 0 4px 0 0; }
+    .items-table tbody td {
+      padding: 11px 13px;
+      font-size: 13px;
+      color: var(--txt-2);
+      border-bottom: 1px solid #f0f7f0;
+    }
+    .items-table tbody tr:last-child td { border-bottom: none; }
+    .items-table tbody tr:hover td { background: #fafffe; }
+
+    /* ============ TOTALS ============ */
+    .bottom-section {
+      padding: 20px 44px 0 52px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      margin-top: 20px;
+    }
+
+    .notes-col { flex: 1; max-width: 340px; }
+    .notes-lbl { font-size: 9.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--txt-4); margin-bottom: 6px; }
+    .notes-body { font-size: 12.5px; color: var(--txt-2); background: var(--g-pale); border: 1px solid #d1fae5; border-radius: 5px; padding: 10px 13px; line-height: 1.6; }
+    .shipping-remark { font-size: 11px; color: var(--txt-4); font-style: italic; margin-top: 8px; }
+
+    .totals-col { min-width: 260px; }
+    .tot-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 0;
+      font-size: 13px; color: var(--txt-2);
+      border-bottom: 1px solid #f0f7f0;
+    }
+    .tot-row:last-of-type { border-bottom: none; }
+    .tot-row .amt { font-weight: 600; color: var(--txt-1); }
+
+    .grand-box {
+      background: var(--g-dark);
+      border-radius: 5px;
+      padding: 14px 18px;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 10px;
+    }
+    .grand-lbl { font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.65); letter-spacing: 0.3px; }
+    .grand-amt { font-size: 22px; font-weight: 800; color: white; letter-spacing: -0.5px; }
+
+    /* ============ SIGNATURE SECTION ============ */
+    .sig-section {
+      padding: 28px 44px 20px 52px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 40px;
+    }
+
+    .sig-block { text-align: center; min-width: 220px; }
+    .sig-canvas-wrap {
+      width: 220px; height: 80px;
+      border-bottom: 1.5px solid #9ca3af;
+      position: relative;
+      cursor: crosshair;
+      background: transparent;
+      display: block;
+      margin: 0 auto;
+    }
+    .sig-canvas {
+      width: 100%; height: 100%;
+      display: block;
+      touch-action: none;
+    }
+    /* Signed image (replaces canvas) */
+    .sig-image {
+      width: 220px; height: 80px;
+      object-fit: contain;
+      display: block;
       margin: 0 auto;
     }
 
-    /* Footer strip */
-    .doc-footer-strip {
-      background: #f0fdf4;
-      border-top: 2px solid #bbf7d0;
-      margin: 28px -44px -40px;
-      padding: 12px 44px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-radius: 0 0 12px 12px;
+    .sig-actions {
+      display: flex; justify-content: center; gap: 6px;
+      margin-top: 5px;
+    }
+    .sig-action-btn {
+      font-size: 10px; padding: 3px 10px; border-radius: 3px;
+      cursor: pointer; border: none; font-family: inherit;
+      font-weight: 600; transition: all 0.15s;
+    }
+    .sig-btn-clear { background: #fee2e2; color: #991b1b; }
+    .sig-btn-clear:hover { background: #fecaca; }
+    .sig-btn-save  { background: var(--g-light); color: var(--g-mid); }
+    .sig-btn-save:hover  { background: #bbf7d0; }
+
+    .sig-name-txt { font-size: 13px; font-weight: 600; color: var(--txt-1); margin-top: 8px; }
+    .sig-co-txt   { font-size: 11px; color: var(--txt-3); margin-top: 2px; }
+
+    .signed-indicator {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; color: var(--g-main); font-weight: 600;
+      margin-top: 4px;
     }
 
-    /* Action toolbar */
+    /* ============ FOOTER ============ */
+    .doc-footer {
+      background: var(--g-pale);
+      border-top: 1px solid #d1fae5;
+      padding: 11px 52px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 16px;
+    }
+    .footer-ref { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--g-mid); }
+    .footer-co  { font-size: 10.5px; color: var(--txt-4); }
+
+    /* ============ WATERMARK ============ */
+    .watermark {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) rotate(-30deg);
+      font-size: 96px; font-weight: 900;
+      color: rgba(220,38,38,0.05);
+      pointer-events: none;
+      white-space: nowrap; letter-spacing: 12px;
+      z-index: 1;
+    }
+
+    /* ============ NAVBAR ============ */
+    .app-nav {
+      background: var(--g-dark);
+      padding: 11px 20px;
+      position: sticky; top: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+    }
+    .nav-left { display: flex; align-items: center; gap: 10px; }
+    .nav-back {
+      color: #86efac; font-size: 12.5px; text-decoration: none;
+      padding: 4px 10px; border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .nav-back:hover { background: rgba(255,255,255,0.1); }
+    .nav-pipe { color: #4ade80; }
+    .nav-doctitle { font-size: 13px; font-weight: 500; color: #d1fae5; }
+    .nav-badge {
+      font-size: 11px; font-weight: 700;
+      padding: 3px 11px; border-radius: 3px;
+    }
+    .nav-logout {
+      background: rgba(255,255,255,0.1); color: white; border: none;
+      padding: 6px 14px; border-radius: 5px; font-size: 12.5px;
+      cursor: pointer; font-family: inherit; transition: background 0.15s;
+    }
+    .nav-logout:hover { background: rgba(255,255,255,0.18); }
+
+    /* ============ ACTION BAR ============ */
     .action-bar {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
+      position: fixed; bottom: 0; left: 0; right: 0;
       background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 999px;
+      border-top: 1px solid var(--border);
       padding: 10px 20px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-      display: flex;
-      align-items: center;
+      display: flex; align-items: center; justify-content: center;
       gap: 8px;
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.08);
       z-index: 100;
     }
+    .act-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 18px; border-radius: 5px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+      border: none; white-space: nowrap;
+      font-family: 'IBM Plex Sans Thai', 'Sarabun', sans-serif;
+    }
+    .btn-ghost { background: transparent; border: 1.5px solid var(--border); color: var(--txt-2); }
+    .btn-ghost:hover { background: #f9fafb; }
+    .btn-dark  { background: var(--g-dark); color: white; }
+    .btn-dark:hover  { background: #0a2a1a; }
+    .btn-main  { background: var(--g-main); color: white; }
+    .btn-main:hover  { background: var(--g-mid); }
+    .btn-amber { background: #d97706; color: white; }
+    .btn-amber:hover { background: #b45309; }
 
-    .action-btn {
-      display: flex;
-      align-items: center;
-      gap-6px;
-      padding: 8px 16px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
+    .act-sep { width: 1px; height: 24px; background: var(--border); }
+
+    /* Status dropdown */
+    .dd-wrap { position: relative; }
+    .dd-menu {
+      position: absolute; bottom: calc(100% + 8px); left: 0;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+      overflow: hidden; min-width: 158px; z-index: 200;
+      display: none;
+    }
+    .dd-menu button {
+      display: block; width: 100%; text-align: left;
+      padding: 10px 16px; font-size: 13px;
+      background: none; border: none; cursor: pointer;
+      font-family: 'IBM Plex Sans Thai', 'Sarabun', sans-serif;
+      transition: background 0.1s;
+    }
+    .dd-menu button:hover { background: #f9fafb; }
+
+    /* ============ SIGNATURE MODAL ============ */
+    .sig-modal-bg {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 300;
+      padding: 20px;
+    }
+    .sig-modal {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      width: 100%; max-width: 480px;
+      overflow: hidden;
+    }
+    .sig-modal-head {
+      background: var(--g-dark);
+      color: white; padding: 16px 22px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .sig-modal-head h3 { font-size: 15px; font-weight: 700; }
+    .sig-modal-close {
+      background: rgba(255,255,255,0.15); border: none; color: white;
+      width: 28px; height: 28px; border-radius: 50%;
+      cursor: pointer; font-size: 16px; display: flex;
+      align-items: center; justify-content: center;
+    }
+    .sig-modal-body { padding: 20px 22px; }
+    .sig-modal-canvas-wrap {
+      width: 100%; height: 180px;
+      border: 2px dashed #d1d5db;
+      border-radius: 8px;
+      position: relative;
+      cursor: crosshair;
+      overflow: hidden;
+      background: #fafafa;
+      touch-action: none;
+    }
+    .sig-modal-canvas-wrap canvas {
+      width: 100%; height: 100%; display: block;
+      touch-action: none;
+    }
+    .sig-modal-placeholder {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--txt-4); font-size: 13px; pointer-events: none;
+    }
+    .sig-modal-footer {
+      padding: 14px 22px;
+      border-top: 1px solid var(--border);
+      display: flex; gap: 8px; justify-content: flex-end;
+    }
+    .sig-modal-btn {
+      padding: 9px 20px; border-radius: 6px; border: none;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      font-family: 'IBM Plex Sans Thai', 'Sarabun', sans-serif;
       transition: all 0.15s;
-      border: none;
-      gap: 6px;
-      white-space: nowrap;
     }
 
-    .btn-outline {
-      background: transparent;
-      border: 1.5px solid #d1d5db;
-      color: #4b5563;
-    }
-    .btn-outline:hover { background: #f9fafb; border-color: #9ca3af; }
-
-    .btn-green {
-      background: #166534;
-      color: white;
-    }
-    .btn-green:hover { background: #14532d; }
-
-    .btn-blue {
-      background: #1d4ed8;
-      color: white;
-    }
-    .btn-blue:hover { background: #1e40af; }
-
-    .btn-orange {
-      background: #ea580c;
-      color: white;
-    }
-    .btn-orange:hover { background: #c2410c; }
-
-    /* Loading overlay */
+    /* ============ LOADING ============ */
     #loading-overlay {
       position: fixed; inset: 0;
-      background: rgba(255,255,255,0.85);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-      gap: 12px;
+      background: rgba(255,255,255,0.92);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 999; gap: 14px;
     }
     .spinner {
-      width: 40px; height: 40px;
-      border: 4px solid #bbf7d0;
-      border-top-color: #166534;
+      width: 36px; height: 36px;
+      border: 3px solid #bbf7d0;
+      border-top-color: var(--g-mid);
       border-radius: 50%;
-      animation: spin 0.7s linear infinite;
+      animation: spin 0.65s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Customer info box */
-    .customer-box {
-      background: #f0fdf4;
-      border-left: 4px solid #16a34a;
-      border-radius: 0 8px 8px 0;
-      padding: 14px 18px;
+    /* ============ TOAST ============ */
+    #toast {
+      position: fixed; top: 64px; right: 20px; z-index: 500;
+      padding: 11px 18px; border-radius: 7px;
+      font-size: 13px; font-weight: 600; color: white;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      transition: opacity 0.3s, transform 0.3s;
+      transform: translateY(0);
     }
+    #toast.hidden { opacity: 0; transform: translateY(-8px); pointer-events: none; }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen pb-28">
+<body>
 
-  <!-- Loading Overlay -->
-  <div id="loading-overlay">
-    <div class="spinner"></div>
-    <p class="text-green-700 font-medium text-sm">กำลังโหลดเอกสาร...</p>
+<!-- Loading -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <p style="color:var(--g-mid);font-size:13px;font-weight:600;">กำลังโหลดเอกสาร...</p>
+</div>
+
+<!-- Navbar -->
+<nav class="app-nav no-print">
+  <div class="nav-left">
+    <a href="dashboard.html" class="nav-back">← กลับ</a>
+    <span class="nav-pipe">|</span>
+    <span class="nav-doctitle" id="nav-title">ดูเอกสาร</span>
   </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span id="nav-status-badge" class="nav-badge"></span>
+    <button onclick="logout()" class="nav-logout">ออกจากระบบ</button>
+  </div>
+</nav>
 
-  <!-- Navbar (no-print) -->
-  <nav class="no-print bg-green-800 text-white shadow-lg sticky top-0 z-10">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <a href="dashboard.html" class="text-green-300 hover:text-white transition text-sm">← กลับ</a>
-        <span class="text-green-500">|</span>
-        <span class="text-xl">👍</span>
-        <span class="font-bold text-sm" id="nav-title">ดูเอกสาร</span>
+<!-- ======== DOCUMENT PAPER ======== -->
+<div class="paper-wrap">
+<div class="doc-paper" id="document-card">
+
+  <div id="watermark" class="watermark" style="display:none;">ยกเลิก</div>
+
+  <!-- HEADER -->
+  <div class="doc-header">
+    <div class="company-block">
+      <!-- Logo: click to upload (no-print shows upload hint) -->
+      <div class="logo-area no-print" id="logo-area-btn" onclick="document.getElementById('logo-input').click()" title="คลิกเพื่อเปลี่ยนโลโก้">
+        <div class="logo-fallback" id="logo-fallback">👍</div>
+        <img id="logo-img" src="" alt="logo"/>
+        <div class="logo-hover-overlay">
+          <span>🖼️</span>
+          <span>เปลี่ยนโลโก้</span>
+        </div>
       </div>
-      <div class="flex items-center gap-2">
-        <span id="nav-status-badge" class="text-xs px-3 py-1 rounded-full font-semibold"></span>
-        <button onclick="logout()" class="text-sm bg-green-700 hover:bg-green-600 px-3 py-1.5 rounded-lg transition">ออกจากระบบ</button>
+      <!-- Static logo for print (no hover overlay) -->
+      <div style="display:none;" id="logo-area-print">
+        <img id="logo-img-print" src="" alt="logo" style="width:80px;height:66px;object-fit:contain;"/>
+        <div id="logo-fallback-print" style="width:80px;height:66px;background:var(--g-dark);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px;">👍</div>
+      </div>
+      <input type="file" id="logo-input" accept="image/*" style="display:none;" onchange="handleLogoUpload(event)"/>
+      <div class="company-text">
+        <div class="co-name">บริษัท คัง ปั้ง วัสดุก่อสร้าง จำกัด</div>
+        <div class="co-detail">
+          28/101 หมู่ที่ 19 ตำบลบางพลีใหญ่ อำเภอบางพลี จังหวัดสมุทรปราการ 10540<br/>
+          โทร: 063-4465622 &nbsp;|&nbsp; อีเมล: kangbang.thai@gmail.com<br/>
+          เลขประจำตัวผู้เสียภาษีอากร: 0 1155 66014 56 8
+        </div>
       </div>
     </div>
-  </nav>
-
-  <!-- Document Wrapper -->
-  <div class="max-w-5xl mx-auto px-4 py-6">
-
-    <!-- Document Card (printable) -->
-    <div class="print-page" id="document-card">
-
-      <!-- Watermark (shown for cancelled) -->
-      <div id="watermark" class="watermark hidden">ยกเลิก</div>
-
-      <!-- Accent Bar -->
-      <div class="doc-accent-bar"></div>
-
-      <!-- Header: Company + Doc Title -->
-      <div class="flex justify-between items-start mb-8">
-        <!-- Company Info -->
-        <div class="flex items-start gap-4">
-          <div class="company-logo">👍</div>
-          <div>
-            <div class="font-bold text-green-800 text-lg leading-tight">บริษัท คัง ปั้ง วัสดุก่อสร้าง จำกัด</div>
-            <div class="text-gray-500 text-xs mt-1.5 leading-relaxed">
-              28/101 หมู่ที่ 19 ตำบลบางพลีใหญ่ อำเภอบางพลี จังหวัดสมุทรปราการ 10540<br/>
-              โทร: 063-4465622 &nbsp;|&nbsp; อีเมล: kangbang.thai@gmail.com<br/>
-              เลขประจำตัวผู้เสียภาษีอากร: 0 1155 66014 56 8
-            </div>
-          </div>
-        </div>
-
-        <!-- Doc Title & Number -->
-        <div class="text-right">
-          <div id="doc-title-th" class="text-green-800 font-extrabold text-3xl mb-3"></div>
-          <div class="text-xs text-gray-500 space-y-1">
-            <div class="flex justify-end gap-2">
-              <span class="text-gray-400">เลขที่</span>
-              <span id="view-doc-number" class="font-bold text-gray-800 text-sm"></span>
-            </div>
-            <div class="flex justify-end gap-2">
-              <span class="text-gray-400">วันที่</span>
-              <span id="view-issue-date" class="text-gray-700"></span>
-            </div>
-            <div id="valid-row" class="flex justify-end gap-2 hidden">
-              <span class="text-gray-400">ใช้ได้ถึง</span>
-              <span id="view-valid-until" class="text-gray-700"></span>
-            </div>
-            <div id="ref-row" class="flex justify-end gap-2 hidden">
-              <span class="text-gray-400">อ้างอิง</span>
-              <span id="view-ref-doc" class="text-gray-700"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Customer Info -->
-      <div class="customer-box mb-8">
-        <div class="text-xs text-green-700 font-semibold mb-1" id="customer-label">เสนอราคาให้กับ</div>
-        <div id="view-customer-name" class="font-bold text-gray-800 text-xl mb-1"></div>
-        <div class="flex flex-wrap gap-4 text-sm text-gray-600">
-          <div id="view-customer-phone" class="flex items-center gap-1"></div>
-          <div id="view-customer-email" class="hidden flex items-center gap-1"></div>
-        </div>
-        <div id="view-customer-address" class="text-xs text-gray-500 mt-1 hidden"></div>
-        <div id="view-customer-tax" class="text-xs text-gray-400 mt-0.5 hidden"></div>
-      </div>
-
-      <!-- Items Table -->
-      <table class="items-table mb-6">
-        <thead>
-          <tr>
-            <th class="text-center w-8">#</th>
-            <th class="text-left w-24">รหัสสินค้า</th>
-            <th class="text-left">รายการ</th>
-            <th class="text-center w-16">หน่วย</th>
-            <th class="text-center w-20">จำนวน</th>
-            <th class="text-right w-32">ราคา/หน่วย (฿)</th>
-            <th class="text-right w-32">ยอดรวม (฿)</th>
-          </tr>
-        </thead>
-        <tbody id="view-items-tbody">
-        </tbody>
+    <div class="doc-title-block">
+      <div id="doc-en-label" class="doc-en-label">QUOTATION</div>
+      <div id="doc-th-title" class="doc-th-title">ใบเสนอราคา</div>
+      <table class="doc-meta">
+        <tr>
+          <td class="lbl">เลขที่</td>
+          <td class="val" id="view-doc-number">—</td>
+        </tr>
+        <tr>
+          <td class="lbl">วันที่</td>
+          <td class="val" id="view-issue-date">—</td>
+        </tr>
+        <tr id="valid-row" style="display:none;">
+          <td class="lbl">ใช้ได้ถึง</td>
+          <td class="val" id="view-valid-until">—</td>
+        </tr>
+        <tr id="ref-row" style="display:none;">
+          <td class="lbl">อ้างอิง</td>
+          <td class="val" id="view-ref-doc">—</td>
+        </tr>
       </table>
-
-      <!-- Totals + Signature -->
-      <div class="flex justify-between items-end gap-8">
-
-        <!-- Notes -->
-        <div class="flex-1">
-          <div id="notes-section" class="hidden">
-            <div class="text-xs text-gray-400 font-medium mb-1">หมายเหตุ</div>
-            <div id="view-notes" class="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100"></div>
-          </div>
-          <div class="mt-4 text-xs text-gray-400 italic" id="shipping-note-text"></div>
-        </div>
-
-        <!-- Totals -->
-        <div class="w-64 flex-shrink-0 space-y-2">
-          <div class="flex justify-between text-sm text-gray-600">
-            <span>ยอดรวม</span>
-            <span id="view-subtotal" class="font-medium text-gray-800"></span>
-          </div>
-          <div id="vat-row" class="flex justify-between text-sm text-gray-600 hidden">
-            <span id="vat-label">VAT 7%</span>
-            <span id="view-vat" class="font-medium text-gray-800"></span>
-          </div>
-          <div id="shipping-row" class="flex justify-between text-sm text-gray-600 hidden">
-            <span>ค่าขนส่ง</span>
-            <span id="view-shipping" class="font-medium text-gray-800"></span>
-          </div>
-          <div class="total-box mt-3">
-            <div class="flex justify-between items-center">
-              <span class="font-bold text-sm text-green-200">ยอดชำระรวมทั้งสิ้น</span>
-              <span id="view-total" class="font-extrabold text-xl text-white"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Signature -->
-      <div class="flex justify-end mt-12 mb-4">
-        <div class="text-center">
-          <div class="h-12"></div>
-          <div class="sig-line"></div>
-          <div class="text-sm text-gray-700 mt-2 font-medium">ผู้มีอำนาจลงนาม</div>
-          <div class="text-xs text-gray-400">บริษัท คัง ปั้ง วัสดุก่อสร้าง จำกัด</div>
-        </div>
-      </div>
-
-      <!-- Footer strip -->
-      <div class="doc-footer-strip">
-        <div class="text-xs text-green-700 font-semibold tracking-widest uppercase" id="footer-doc-type"></div>
-        <div class="text-xs text-gray-400" id="footer-doc-info"></div>
-      </div>
-
     </div>
-    <!-- /print-page -->
-
   </div>
 
-  <!-- ===================== ACTION BAR (no-print) ===================== -->
-  <div class="action-bar no-print" id="action-bar">
+  <div class="h-rule"></div>
 
-    <!-- Back -->
-    <a href="dashboard.html">
-      <button class="action-btn btn-outline">← รายการ</button>
-    </a>
-
-    <div class="w-px h-6 bg-gray-200 mx-1"></div>
-
-    <!-- Edit -->
-    <button class="action-btn btn-outline" id="btn-edit" onclick="editDoc()">
-      ✏️ แก้ไข
-    </button>
-
-    <!-- Status -->
-    <div class="relative" id="status-dropdown-wrap">
-      <button class="action-btn btn-outline" onclick="toggleStatusDropdown()">
-        🔄 เปลี่ยนสถานะ ▾
-      </button>
-      <div id="status-dropdown" class="hidden absolute bottom-12 left-0 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden w-40 z-50">
-        <button onclick="changeStatus('draft')"    class="block w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 text-gray-600">📝 ร่าง</button>
-        <button onclick="changeStatus('sent')"     class="block w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 text-yellow-700">📤 ส่งแล้ว</button>
-        <button onclick="changeStatus('approved')" class="block w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 text-green-700">✅ อนุมัติ</button>
-        <button onclick="changeStatus('cancelled')" class="block w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 text-red-600">❌ ยกเลิก</button>
+  <!-- CUSTOMER -->
+  <div class="customer-section">
+    <div>
+      <div class="cust-to-label" id="cust-to-label">เสนอราคาให้กับ</div>
+      <div class="cust-name" id="view-cust-name">—</div>
+      <div class="cust-details">
+        <div class="cust-detail" id="cust-phone">
+          <div class="cust-icon">📞</div>
+          <span id="cust-phone-val">—</span>
+        </div>
+        <div class="cust-detail" id="cust-email" style="display:none;">
+          <div class="cust-icon">✉</div>
+          <span id="cust-email-val"></span>
+        </div>
+        <div class="cust-detail" id="cust-addr" style="display:none;">
+          <div class="cust-icon">📍</div>
+          <span id="cust-addr-val"></span>
+        </div>
       </div>
+      <div id="cust-tax" style="display:none;font-size:11px;color:var(--txt-4);margin-top:5px;"></div>
     </div>
-
-    <div class="w-px h-6 bg-gray-200 mx-1"></div>
-
-    <!-- Save Image -->
-    <button class="action-btn btn-orange" onclick="saveAsImage()">
-      🖼️ บันทึกรูป
-    </button>
-
-    <!-- Print / PDF -->
-    <button class="action-btn btn-green" onclick="printDoc()">
-      🖨️ พิมพ์ / PDF
-    </button>
-
   </div>
 
-  <!-- Toast -->
-  <div id="toast" class="fixed top-6 right-6 z-50 hidden px-5 py-3 rounded-xl shadow-lg text-sm font-medium text-white transition-all"></div>
+  <div class="h-rule"></div>
 
-  <script>
-    const SUPABASE_URL = 'https://ygdcbkhaqsaiyymxvrph.supabase.co'
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnZGNia2hhcXNhaXl5bXh2cnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzY4NTMsImV4cCI6MjA4ODYxMjg1M30.1quRttxAsp4b9471rdUh0zkdx97tfK9pW__0Bh3RWY0'
-    const { createClient } = supabase
-    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  <!-- ITEMS -->
+  <div class="items-section" style="margin-top:22px;">
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th style="text-align:center;width:36px;">#</th>
+          <th style="text-align:left;width:90px;">รหัสสินค้า</th>
+          <th style="text-align:left;">รายการ</th>
+          <th style="text-align:center;width:60px;">หน่วย</th>
+          <th style="text-align:center;width:72px;">จำนวน</th>
+          <th style="text-align:right;width:118px;">ราคา/หน่วย (฿)</th>
+          <th style="text-align:right;width:118px;">ยอดรวม (฿)</th>
+        </tr>
+      </thead>
+      <tbody id="items-tbody"></tbody>
+    </table>
+  </div>
 
-    let currentDoc = null
-    let currentDocId = null
+  <!-- TOTALS -->
+  <div class="bottom-section">
+    <div class="notes-col">
+      <div id="notes-sec" style="display:none;">
+        <div class="notes-lbl">หมายเหตุ</div>
+        <div class="notes-body" id="view-notes"></div>
+      </div>
+      <div class="shipping-remark" id="shipping-remark"></div>
+    </div>
+    <div class="totals-col">
+      <div class="tot-row">
+        <span>ยอดรวม</span>
+        <span class="amt" id="view-subtotal">—</span>
+      </div>
+      <div class="tot-row" id="vat-row" style="display:none;">
+        <span id="vat-label">VAT 7%</span>
+        <span class="amt" id="view-vat">—</span>
+      </div>
+      <div class="tot-row" id="shipping-row" style="display:none;">
+        <span>ค่าขนส่ง</span>
+        <span class="amt" id="view-shipping">—</span>
+      </div>
+      <div class="grand-box">
+        <span class="grand-lbl">ยอดชำระรวมทั้งสิ้น</span>
+        <span class="grand-amt" id="view-total">—</span>
+      </div>
+    </div>
+  </div>
 
-    const DOC_TYPE = {
-      quotation: { th: 'ใบเสนอราคา', en: 'QUOTATION',      customer_label: 'เสนอราคาให้กับ' },
-      receipt:   { th: 'ใบเสร็จรับเงิน', en: 'RECEIPT',    customer_label: 'ออกให้กับ' },
-      delivery:  { th: 'ใบส่งสินค้า', en: 'DELIVERY ORDER', customer_label: 'จัดส่งให้กับ' },
+  <!-- SIGNATURE -->
+  <div class="sig-section">
+    <div class="sig-block">
+      <!-- Canvas (shows when no signature yet) -->
+      <div id="sig-canvas-wrap" class="sig-canvas-wrap">
+        <canvas id="sig-canvas" class="sig-canvas"></canvas>
+        <div id="sig-placeholder" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--txt-4);font-size:12px;pointer-events:none;">
+          ลายเซ็นผู้มีอำนาจ
+        </div>
+      </div>
+      <!-- Saved signature image (shows after saving) -->
+      <img id="sig-saved-img" class="sig-image" src="" alt="signature" style="display:none;border-bottom:1.5px solid #9ca3af;"/>
+      <!-- Inline action buttons (no-print) -->
+      <div class="sig-actions no-print" id="sig-actions">
+        <button class="sig-action-btn sig-btn-clear" onclick="clearSignature()">ล้าง</button>
+        <button class="sig-action-btn sig-btn-save"  onclick="saveSignature()">บันทึกลายเซ็น</button>
+      </div>
+      <div id="sig-signed-badge" style="display:none;" class="signed-indicator">✅ ลงนามแล้ว</div>
+      <div class="sig-name-txt">ผู้มีอำนาจลงนาม</div>
+      <div class="sig-co-txt">บริษัท คัง ปั้ง วัสดุก่อสร้าง จำกัด</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <span class="footer-ref" id="footer-type">QUOTATION</span>
+    <span class="footer-co" id="footer-info"></span>
+  </div>
+
+</div><!-- /doc-paper -->
+</div><!-- /paper-wrap -->
+
+<!-- ======== ACTION BAR ======== -->
+<div class="action-bar no-print">
+
+  <a href="dashboard.html" style="text-decoration:none;">
+    <button class="act-btn btn-ghost">← รายการ</button>
+  </a>
+
+  <div class="act-sep"></div>
+
+  <button class="act-btn btn-ghost" onclick="editDoc()">✏️ แก้ไข</button>
+
+  <div class="dd-wrap">
+    <button class="act-btn btn-ghost" onclick="toggleDD()">🔄 สถานะ ▾</button>
+    <div class="dd-menu" id="dd-status">
+      <button onclick="changeStatus('draft')">📝 ร่าง</button>
+      <button onclick="changeStatus('sent')"      style="color:#92400e;">📤 ส่งแล้ว</button>
+      <button onclick="changeStatus('approved')"  style="color:#166534;">✅ อนุมัติ</button>
+      <button onclick="changeStatus('cancelled')" style="color:#991b1b;">❌ ยกเลิก</button>
+    </div>
+  </div>
+
+  <div class="act-sep"></div>
+
+  <!-- Logo upload -->
+  <label for="logo-input" class="act-btn btn-ghost" style="cursor:pointer;">🖼️ ใส่โลโก้</label>
+
+  <!-- Signature -->
+  <button class="act-btn btn-ghost" onclick="openSigModal()">✍️ ลายเซ็น</button>
+
+  <div class="act-sep"></div>
+
+  <button class="act-btn btn-amber" onclick="saveAsImage()">💾 บันทึกรูป</button>
+  <button class="act-btn btn-dark"  onclick="printDoc()">🖨️ พิมพ์ / PDF</button>
+
+</div>
+
+<!-- ======== SIGNATURE MODAL ======== -->
+<div id="sig-modal" class="sig-modal-bg" style="display:none;">
+  <div class="sig-modal">
+    <div class="sig-modal-head">
+      <h3>✍️ ลายเซ็นดิจิทัล</h3>
+      <button class="sig-modal-close" onclick="closeSigModal()">✕</button>
+    </div>
+    <div class="sig-modal-body">
+      <p style="font-size:12.5px;color:var(--txt-3);margin-bottom:12px;">เซ็นชื่อในกรอบด้านล่าง (ใช้เมาส์หรือสัมผัสหน้าจอ)</p>
+      <div class="sig-modal-canvas-wrap" id="modal-canvas-wrap">
+        <canvas id="modal-sig-canvas" touch-action="none"></canvas>
+        <div class="sig-modal-placeholder" id="modal-placeholder">วาดลายเซ็นที่นี่...</div>
+      </div>
+    </div>
+    <div class="sig-modal-footer">
+      <button class="sig-modal-btn" onclick="clearModalSig()" style="background:#fee2e2;color:#991b1b;">ล้าง</button>
+      <button class="sig-modal-btn" onclick="applyModalSig()" style="background:var(--g-dark);color:white;">ใช้ลายเซ็นนี้</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="hidden"></div>
+
+<script>
+/* ==================== SUPABASE ==================== */
+const SUPABASE_URL      = 'https://ygdcbkhaqsaiyymxvrph.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnZGNia2hhcXNhaXl5bXh2cnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzY4NTMsImV4cCI6MjA4ODYxMjg1M30.1quRttxAsp4b9471rdUh0zkdx97tfK9pW__0Bh3RWY0'
+const { createClient } = supabase
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+let currentDoc   = null
+let currentDocId = null
+
+const DOC_TYPE = {
+  quotation: { th:'ใบเสนอราคา',    en:'QUOTATION',       lbl:'เสนอราคาให้กับ' },
+  receipt:   { th:'ใบเสร็จรับเงิน', en:'RECEIPT',         lbl:'ออกให้กับ'      },
+  delivery:  { th:'ใบส่งสินค้า',   en:'DELIVERY ORDER',  lbl:'จัดส่งให้กับ'   },
+}
+const STATUS_CFG = {
+  draft:     { label:'ร่าง',    bg:'#e5e7eb', tx:'#374151' },
+  sent:      { label:'ส่งแล้ว', bg:'#fef3c7', tx:'#92400e' },
+  approved:  { label:'อนุมัติ', bg:'#d1fae5', tx:'#065f46' },
+  cancelled: { label:'ยกเลิก', bg:'#fee2e2', tx:'#991b1b' },
+}
+
+const fmt = (s) => s ? new Date(s).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}) : '—'
+const money = (n) => '฿' + Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:2})
+
+/* ==================== INIT ==================== */
+async function init() {
+  const { data:{ session } } = await sb.auth.getSession()
+  if (!session) { window.location.href = 'index.html'; return }
+
+  const params = new URLSearchParams(window.location.search)
+  currentDocId = params.get('id')
+  if (!currentDocId) { window.location.href = 'dashboard.html'; return }
+
+  // Restore logo
+  const savedLogo = localStorage.getItem('kb_logo')
+  if (savedLogo) applyLogo(savedLogo)
+
+  // Restore signature for this doc
+  const savedSig = localStorage.getItem('kb_sig_' + currentDocId)
+  if (savedSig) applySignatureImage(savedSig)
+
+  await loadDoc(currentDocId)
+  document.getElementById('loading-overlay').style.display = 'none'
+  initInlineSig()
+}
+
+/* ==================== LOAD DOC ==================== */
+async function loadDoc(id) {
+  const { data:doc, error } = await sb.from('documents').select('*').eq('id',id).single()
+  if (error || !doc) { showToast('ไม่พบเอกสาร','error'); return }
+  const { data:items } = await sb.from('document_items').select('*').eq('document_id',id).order('sort_order')
+  currentDoc = { ...doc, items: items||[] }
+  renderDoc()
+}
+
+/* ==================== RENDER ==================== */
+function renderDoc() {
+  const d      = currentDoc
+  const type   = DOC_TYPE[d.doc_type]   || DOC_TYPE.quotation
+  const status = STATUS_CFG[d.status]   || STATUS_CFG.draft
+
+  // Navbar
+  document.getElementById('nav-title').textContent = `${type.th} · ${d.doc_number}`
+  document.title = `${type.th} ${d.doc_number} — Kang Bang`
+  const badge = document.getElementById('nav-status-badge')
+  badge.textContent = status.label
+  badge.style.background = status.bg
+  badge.style.color = status.tx
+
+  // Header
+  document.getElementById('doc-en-label').textContent  = type.en
+  document.getElementById('doc-th-title').textContent  = type.th
+  document.getElementById('view-doc-number').textContent = d.doc_number
+  document.getElementById('view-issue-date').textContent = fmt(d.issue_date)
+  document.getElementById('cust-to-label').textContent = type.lbl
+
+  if (d.valid_until && d.doc_type === 'quotation') {
+    document.getElementById('valid-row').style.display = ''
+    document.getElementById('view-valid-until').textContent = fmt(d.valid_until)
+  }
+  if (d.ref_doc_id) {
+    document.getElementById('ref-row').style.display = ''
+    loadRefDoc(d.ref_doc_id)
+  }
+
+  // Customer
+  document.getElementById('view-cust-name').textContent  = d.customer_name
+  document.getElementById('cust-phone-val').textContent  = d.customer_phone
+  if (d.customer_email) {
+    document.getElementById('cust-email').style.display = 'flex'
+    document.getElementById('cust-email-val').textContent = d.customer_email
+  }
+  if (d.customer_address) {
+    document.getElementById('cust-addr').style.display = 'flex'
+    document.getElementById('cust-addr-val').textContent = d.customer_address
+  }
+  if (d.customer_tax_id) {
+    document.getElementById('cust-tax').style.display = ''
+    document.getElementById('cust-tax').textContent = 'เลขผู้เสียภาษี: ' + d.customer_tax_id
+  }
+
+  // Items
+  const tbody = document.getElementById('items-tbody')
+  tbody.innerHTML = d.items.length ? d.items.map((it,i)=>`
+    <tr>
+      <td style="text-align:center;color:var(--txt-4);font-size:12px;">${i+1}</td>
+      <td style="font-family:monospace;color:var(--g-mid);font-weight:600;font-size:12.5px;">${it.product_code||'—'}</td>
+      <td>
+        <div style="font-weight:600;color:var(--txt-1);">${it.product_name}</div>
+        ${it.description?`<div style="font-size:11.5px;color:var(--txt-4);margin-top:2px;">${it.description}</div>`:''}
+      </td>
+      <td style="text-align:center;">${it.unit}</td>
+      <td style="text-align:center;font-weight:600;">${Number(it.quantity).toLocaleString('th-TH')}</td>
+      <td style="text-align:right;">${Number(it.unit_price).toLocaleString('th-TH',{minimumFractionDigits:2})}</td>
+      <td style="text-align:right;font-weight:700;color:var(--txt-1);">${Number(it.total_price).toLocaleString('th-TH',{minimumFractionDigits:2})}</td>
+    </tr>`).join('')
+    : `<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--txt-4);">ไม่มีรายการสินค้า</td></tr>`
+
+  // Totals
+  document.getElementById('view-subtotal').textContent = money(d.subtotal)
+  if (d.vat_percent > 0) {
+    document.getElementById('vat-row').style.display = ''
+    document.getElementById('vat-label').textContent = `VAT ${d.vat_percent}%`
+    document.getElementById('view-vat').textContent  = money(d.vat_amount)
+  }
+  if (d.shipping > 0) {
+    document.getElementById('shipping-row').style.display = ''
+    document.getElementById('view-shipping').textContent  = money(d.shipping)
+  } else {
+    document.getElementById('shipping-remark').textContent = '* ค่าจัดส่งรวมอยู่ในราคาสินค้าแล้ว'
+  }
+  document.getElementById('view-total').textContent = money(d.total)
+
+  // Notes
+  if (d.notes) {
+    document.getElementById('notes-sec').style.display = ''
+    document.getElementById('view-notes').textContent   = d.notes
+  }
+
+  // Footer
+  document.getElementById('footer-type').textContent = type.en
+  document.getElementById('footer-info').textContent = `${d.doc_number} · บริษัท คัง ปั้ง วัสดุก่อสร้าง จำกัด`
+
+  // Watermark
+  if (d.status === 'cancelled') document.getElementById('watermark').style.display = ''
+}
+
+async function loadRefDoc(refId) {
+  const { data } = await sb.from('documents').select('doc_number').eq('id',refId).single()
+  if (data) document.getElementById('view-ref-doc').textContent = data.doc_number
+}
+
+/* ==================== LOGO ==================== */
+function handleLogoUpload(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    applyLogo(ev.target.result)
+    localStorage.setItem('kb_logo', ev.target.result)
+    showToast('บันทึกโลโก้เรียบร้อย ✓')
+  }
+  reader.readAsDataURL(file)
+}
+
+function applyLogo(src) {
+  const img      = document.getElementById('logo-img')
+  const fallback = document.getElementById('logo-fallback')
+  img.src = src
+  img.style.display = 'block'
+  fallback.style.display = 'none'
+}
+
+/* ==================== INLINE SIGNATURE (on doc) ==================== */
+let inlineSigCtx = null, inlineSigDrawing = false, inlineHasStrokes = false
+
+function initInlineSig() {
+  const wrap   = document.getElementById('sig-canvas-wrap')
+  const canvas = document.getElementById('sig-canvas')
+  const ph     = document.getElementById('sig-placeholder')
+
+  // Size canvas to match display size
+  function resizeCanvas() {
+    canvas.width  = wrap.offsetWidth
+    canvas.height = wrap.offsetHeight
+  }
+  resizeCanvas()
+
+  inlineSigCtx = canvas.getContext('2d')
+  inlineSigCtx.lineWidth   = 1.8
+  inlineSigCtx.lineCap     = 'round'
+  inlineSigCtx.lineJoin    = 'round'
+  inlineSigCtx.strokeStyle = '#0d3320'
+
+  const getPos = (e) => {
+    const r = canvas.getBoundingClientRect()
+    const src = e.touches ? e.touches[0] : e
+    return { x: (src.clientX - r.left) * (canvas.width / r.width),
+             y: (src.clientY - r.top)  * (canvas.height / r.height) }
+  }
+
+  canvas.addEventListener('mousedown',  (e)=>{ inlineSigDrawing=true; inlineSigCtx.beginPath(); const p=getPos(e); inlineSigCtx.moveTo(p.x,p.y); ph.style.display='none'; inlineHasStrokes=true; })
+  canvas.addEventListener('mousemove',  (e)=>{ if(!inlineSigDrawing) return; const p=getPos(e); inlineSigCtx.lineTo(p.x,p.y); inlineSigCtx.stroke(); })
+  canvas.addEventListener('mouseup',    ()=>{ inlineSigDrawing=false; })
+  canvas.addEventListener('mouseleave', ()=>{ inlineSigDrawing=false; })
+  canvas.addEventListener('touchstart', (e)=>{ e.preventDefault(); inlineSigDrawing=true; inlineSigCtx.beginPath(); const p=getPos(e); inlineSigCtx.moveTo(p.x,p.y); ph.style.display='none'; inlineHasStrokes=true; }, {passive:false})
+  canvas.addEventListener('touchmove',  (e)=>{ e.preventDefault(); if(!inlineSigDrawing) return; const p=getPos(e); inlineSigCtx.lineTo(p.x,p.y); inlineSigCtx.stroke(); }, {passive:false})
+  canvas.addEventListener('touchend',   ()=>{ inlineSigDrawing=false; })
+}
+
+function clearSignature() {
+  const canvas = document.getElementById('sig-canvas')
+  if (inlineSigCtx) inlineSigCtx.clearRect(0,0,canvas.width,canvas.height)
+  inlineHasStrokes = false
+  document.getElementById('sig-placeholder').style.display = 'flex'
+  // Also clear saved
+  document.getElementById('sig-saved-img').style.display = 'none'
+  document.getElementById('sig-canvas-wrap').style.display = 'block'
+  document.getElementById('sig-signed-badge').style.display = 'none'
+  document.getElementById('sig-actions').style.display = 'flex'
+  if (currentDocId) localStorage.removeItem('kb_sig_' + currentDocId)
+}
+
+function saveSignature() {
+  const canvas = document.getElementById('sig-canvas')
+  if (!inlineHasStrokes) { showToast('กรุณาเซ็นชื่อก่อนบันทึก','error'); return }
+  const dataUrl = canvas.toDataURL('image/png')
+  applySignatureImage(dataUrl)
+  if (currentDocId) localStorage.setItem('kb_sig_' + currentDocId, dataUrl)
+  showToast('บันทึกลายเซ็นเรียบร้อย ✓')
+}
+
+function applySignatureImage(src) {
+  const img    = document.getElementById('sig-saved-img')
+  const wrap   = document.getElementById('sig-canvas-wrap')
+  const badge  = document.getElementById('sig-signed-badge')
+  const actions= document.getElementById('sig-actions')
+  img.src = src
+  img.style.display  = 'block'
+  wrap.style.display = 'none'
+  badge.style.display = 'inline-flex'
+  actions.style.display = 'none'
+}
+
+/* ==================== SIGNATURE MODAL ==================== */
+let modalCtx = null, modalDrawing = false, modalHasStrokes = false
+
+function openSigModal() {
+  const modal   = document.getElementById('sig-modal')
+  const wrap    = document.getElementById('modal-canvas-wrap')
+  const canvas  = document.getElementById('modal-sig-canvas')
+  modal.style.display = 'flex'
+
+  setTimeout(() => {
+    canvas.width  = wrap.offsetWidth
+    canvas.height = wrap.offsetHeight
+
+    modalCtx = canvas.getContext('2d')
+    modalCtx.lineWidth   = 2
+    modalCtx.lineCap     = 'round'
+    modalCtx.lineJoin    = 'round'
+    modalCtx.strokeStyle = '#0d3320'
+    modalHasStrokes = false
+
+    const getPos = (e) => {
+      const r = canvas.getBoundingClientRect()
+      const src = e.touches ? e.touches[0] : e
+      return { x: (src.clientX - r.left) * (canvas.width / r.width),
+               y: (src.clientY - r.top)  * (canvas.height / r.height) }
     }
 
-    const STATUS_STYLES = {
-      draft:     { label: 'ร่าง',    bg: 'bg-gray-100', text: 'text-gray-600',   nav: 'bg-gray-200 text-gray-700' },
-      sent:      { label: 'ส่งแล้ว', bg: 'bg-yellow-100', text: 'text-yellow-700', nav: 'bg-yellow-100 text-yellow-800' },
-      approved:  { label: 'อนุมัติ', bg: 'bg-green-100',  text: 'text-green-700',  nav: 'bg-green-100 text-green-800' },
-      cancelled: { label: 'ยกเลิก', bg: 'bg-red-100',    text: 'text-red-600',    nav: 'bg-red-100 text-red-700' },
-    }
+    // Remove old listeners by cloning
+    const newCanvas = canvas.cloneNode(true)
+    wrap.replaceChild(newCanvas, canvas)
 
-    function fmtDate(str) {
-      if (!str) return '—'
-      return new Date(str).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
-    }
+    const ctx2 = newCanvas.getContext('2d')
+    ctx2.lineWidth = 2; ctx2.lineCap = 'round'; ctx2.lineJoin = 'round'; ctx2.strokeStyle = '#0d3320'
+    modalCtx = ctx2
 
-    function fmtMoney(n) {
-      return '฿' + Number(n || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })
-    }
+    newCanvas.addEventListener('mousedown',  (e)=>{ modalDrawing=true; ctx2.beginPath(); const p=getPos(e); ctx2.moveTo(p.x,p.y); document.getElementById('modal-placeholder').style.display='none'; modalHasStrokes=true; })
+    newCanvas.addEventListener('mousemove',  (e)=>{ if(!modalDrawing) return; const p=getPos(e); ctx2.lineTo(p.x,p.y); ctx2.stroke(); })
+    newCanvas.addEventListener('mouseup',    ()=>{ modalDrawing=false; })
+    newCanvas.addEventListener('mouseleave', ()=>{ modalDrawing=false; })
+    newCanvas.addEventListener('touchstart', (e)=>{ e.preventDefault(); modalDrawing=true; ctx2.beginPath(); const p=getPos(e); ctx2.moveTo(p.x,p.y); document.getElementById('modal-placeholder').style.display='none'; modalHasStrokes=true; }, {passive:false})
+    newCanvas.addEventListener('touchmove',  (e)=>{ e.preventDefault(); if(!modalDrawing) return; const p=getPos(e); ctx2.lineTo(p.x,p.y); ctx2.stroke(); }, {passive:false})
+    newCanvas.addEventListener('touchend',   ()=>{ modalDrawing=false; })
+  }, 50)
+}
 
-    async function init() {
-      const { data: { session } } = await sb.auth.getSession()
-      if (!session) { window.location.href = 'index.html'; return }
+function clearModalSig() {
+  const wrap = document.getElementById('modal-canvas-wrap')
+  const canvas = wrap.querySelector('canvas')
+  if (canvas && modalCtx) modalCtx.clearRect(0,0,canvas.width,canvas.height)
+  modalHasStrokes = false
+  document.getElementById('modal-placeholder').style.display = 'flex'
+}
 
-      const params = new URLSearchParams(window.location.search)
-      currentDocId = params.get('id')
-      if (!currentDocId) { window.location.href = 'dashboard.html'; return }
+function applyModalSig() {
+  if (!modalHasStrokes) { showToast('กรุณาเซ็นชื่อก่อน','error'); return }
+  const canvas  = document.getElementById('modal-canvas-wrap').querySelector('canvas')
+  const dataUrl = canvas.toDataURL('image/png')
+  closeSigModal()
+  applySignatureImage(dataUrl)
+  if (currentDocId) localStorage.setItem('kb_sig_' + currentDocId, dataUrl)
+  showToast('บันทึกลายเซ็นเรียบร้อย ✓')
+}
 
-      await loadDoc(currentDocId)
-      document.getElementById('loading-overlay').style.display = 'none'
-    }
+function closeSigModal() {
+  document.getElementById('sig-modal').style.display = 'none'
+}
 
-    async function loadDoc(id) {
-      const { data: doc, error } = await sb.from('documents').select('*').eq('id', id).single()
-      if (error || !doc) { showToast('ไม่พบเอกสาร', 'error'); return }
+// Close modal on backdrop click
+document.getElementById('sig-modal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('sig-modal')) closeSigModal()
+})
 
-      const { data: docItems } = await sb
-        .from('document_items').select('*')
-        .eq('document_id', id).order('sort_order')
+/* ==================== ACTIONS ==================== */
+function editDoc() { window.location.href = `document-new.html?id=${currentDocId}` }
 
-      currentDoc = { ...doc, items: docItems || [] }
-      renderDoc()
-    }
+function toggleDD() { document.getElementById('dd-status').style.display = document.getElementById('dd-status').style.display === 'block' ? 'none' : 'block' }
+document.addEventListener('click', (e)=>{ if (!e.target.closest('.dd-wrap')) document.getElementById('dd-status').style.display = 'none' })
 
-    function renderDoc() {
-      const d = currentDoc
-      const type = DOC_TYPE[d.doc_type] || DOC_TYPE.quotation
-      const status = STATUS_STYLES[d.status] || STATUS_STYLES.draft
+async function changeStatus(s) {
+  document.getElementById('dd-status').style.display = 'none'
+  const { error } = await sb.from('documents').update({ status:s }).eq('id', currentDocId)
+  if (error) { showToast('เกิดข้อผิดพลาด','error'); return }
+  currentDoc.status = s
+  renderDoc()
+  showToast('เปลี่ยนสถานะเรียบร้อย ✓')
+}
 
-      // Navbar
-      document.getElementById('nav-title').textContent = `${type.th} · ${d.doc_number}`
-      document.title = `${type.th} ${d.doc_number} — Kang Bang`
-      const navBadge = document.getElementById('nav-status-badge')
-      navBadge.textContent = status.label
-      navBadge.className = `text-xs px-3 py-1 rounded-full font-semibold ${status.nav}`
-
-      // Doc title
-      document.getElementById('doc-title-th').textContent = type.th
-      document.getElementById('view-doc-number').textContent = d.doc_number
-      document.getElementById('view-issue-date').textContent = fmtDate(d.issue_date)
-      document.getElementById('customer-label').textContent = type.customer_label
-
-      // Valid until (quotation only)
-      if (d.valid_until && d.doc_type === 'quotation') {
-        document.getElementById('valid-row').classList.remove('hidden')
-        document.getElementById('view-valid-until').textContent = fmtDate(d.valid_until)
-      }
-
-      // Ref doc
-      if (d.ref_doc_id) {
-        document.getElementById('ref-row').classList.remove('hidden')
-        loadRefDocNumber(d.ref_doc_id)
-      }
-
-      // Customer
-      document.getElementById('view-customer-name').textContent = d.customer_name
-      const phoneEl = document.getElementById('view-customer-phone')
-      phoneEl.innerHTML = `📞 ${d.customer_phone}`
-
-      if (d.customer_email) {
-        const emailEl = document.getElementById('view-customer-email')
-        emailEl.innerHTML = `✉️ ${d.customer_email}`
-        emailEl.classList.remove('hidden')
-      }
-      if (d.customer_address) {
-        const addrEl = document.getElementById('view-customer-address')
-        addrEl.textContent = '📍 ' + d.customer_address
-        addrEl.classList.remove('hidden')
-      }
-      if (d.customer_tax_id) {
-        const taxEl = document.getElementById('view-customer-tax')
-        taxEl.textContent = 'เลขผู้เสียภาษี: ' + d.customer_tax_id
-        taxEl.classList.remove('hidden')
-      }
-
-      // Items
-      const tbody = document.getElementById('view-items-tbody')
-      if (!currentDoc.items.length) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-400">ไม่มีรายการ</td></tr>`
-      } else {
-        tbody.innerHTML = currentDoc.items.map((item, i) => `
-          <tr>
-            <td class="text-center text-gray-400">${i + 1}</td>
-            <td class="font-mono text-green-700 font-medium">${item.product_code || '—'}</td>
-            <td>
-              <div class="font-medium text-gray-800">${item.product_name}</div>
-              ${item.description ? `<div class="text-xs text-gray-400 mt-0.5">${item.description}</div>` : ''}
-            </td>
-            <td class="text-center">${item.unit}</td>
-            <td class="text-center font-medium">${Number(item.quantity).toLocaleString('th-TH')}</td>
-            <td class="text-right">${Number(item.unit_price).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-            <td class="text-right font-semibold text-gray-800">${Number(item.total_price).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-          </tr>`).join('')
-      }
-
-      // Totals
-      document.getElementById('view-subtotal').textContent = fmtMoney(d.subtotal)
-      if (d.vat_percent > 0) {
-        document.getElementById('vat-row').classList.remove('hidden')
-        document.getElementById('vat-label').textContent = `VAT ${d.vat_percent}%`
-        document.getElementById('view-vat').textContent = fmtMoney(d.vat_amount)
-      }
-      if (d.shipping > 0) {
-        document.getElementById('shipping-row').classList.remove('hidden')
-        document.getElementById('view-shipping').textContent = fmtMoney(d.shipping)
-      }
-      document.getElementById('view-total').textContent = fmtMoney(d.total)
-
-      // Shipping note
-      if (d.shipping === 0 || !d.shipping) {
-        document.getElementById('shipping-note-text').textContent = '* ค่าจัดส่งรวมอยู่ในราคาสินค้าแล้ว'
-      }
-
-      // Notes
-      if (d.notes) {
-        document.getElementById('notes-section').classList.remove('hidden')
-        document.getElementById('view-notes').textContent = d.notes
-      }
-
-      // Footer
-      document.getElementById('footer-doc-type').textContent = type.en
-      document.getElementById('footer-doc-info').textContent = `${d.doc_number} · บริษัท คัง ปั้ง วัสดุก่อสร้าง จำกัด`
-
-      // Watermark
-      if (d.status === 'cancelled') {
-        document.getElementById('watermark').classList.remove('hidden')
-      }
-    }
-
-    async function loadRefDocNumber(refId) {
-      const { data } = await sb.from('documents').select('doc_number').eq('id', refId).single()
-      if (data) document.getElementById('view-ref-doc').textContent = data.doc_number
-    }
-
-    // ===================== ACTIONS =====================
-
-    function editDoc() {
-      window.location.href = `document-new.html?id=${currentDocId}`
-    }
-
-    function toggleStatusDropdown() {
-      document.getElementById('status-dropdown').classList.toggle('hidden')
-    }
-
-    document.addEventListener('click', e => {
-      if (!e.target.closest('#status-dropdown-wrap')) {
-        document.getElementById('status-dropdown').classList.add('hidden')
-      }
+async function saveAsImage() {
+  showToast('กำลังสร้างรูปภาพ...','info')
+  // Hide no-print elements temporarily
+  document.querySelectorAll('.no-print').forEach(el => el.setAttribute('data-hide','1') || (el.style.visibility='hidden'))
+  try {
+    const canvas = await html2canvas(document.getElementById('document-card'), {
+      scale: 2.5,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      allowTaint: true,
     })
+    const link = document.createElement('a')
+    link.download = `${currentDoc?.doc_number || 'document'}.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+    showToast('บันทึกรูปภาพเรียบร้อย ✓')
+  } catch(e) {
+    showToast('ไม่สามารถบันทึกได้: ' + e.message,'error')
+  } finally {
+    document.querySelectorAll('[data-hide]').forEach(el => { el.style.visibility=''; el.removeAttribute('data-hide') })
+  }
+}
 
-    async function changeStatus(newStatus) {
-      document.getElementById('status-dropdown').classList.add('hidden')
-      const { error } = await sb.from('documents').update({ status: newStatus }).eq('id', currentDocId)
-      if (error) { showToast('เกิดข้อผิดพลาด: ' + error.message, 'error'); return }
-      currentDoc.status = newStatus
-      renderDoc()
-      showToast('เปลี่ยนสถานะเรียบร้อย ✓')
-    }
+function printDoc() { window.print() }
 
-    function printDoc() {
-      window.print()
-    }
+async function logout() { await sb.auth.signOut(); window.location.href = 'index.html' }
 
-    async function saveAsImage() {
-      const card = document.getElementById('document-card')
-      showToast('กำลังสร้างรูปภาพ...', 'info')
-      try {
-        const canvas = await html2canvas(card, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-        })
-        const link = document.createElement('a')
-        link.download = `${currentDoc.doc_number}.png`
-        link.href = canvas.toDataURL('image/png')
-        link.click()
-        showToast('บันทึกรูปภาพเรียบร้อย ✓')
-      } catch (e) {
-        showToast('ไม่สามารถบันทึกรูปได้: ' + e.message, 'error')
-      }
-    }
+/* ==================== TOAST ==================== */
+function showToast(msg, type='success') {
+  const toast = document.getElementById('toast')
+  const colors = { success:'#166534', error:'#dc2626', info:'#1d4ed8' }
+  toast.style.background = colors[type]||colors.success
+  toast.textContent = msg
+  toast.classList.remove('hidden')
+  clearTimeout(toast._t)
+  toast._t = setTimeout(()=> toast.classList.add('hidden'), 3000)
+}
 
-    function showToast(msg, type = 'success') {
-      const toast = document.getElementById('toast')
-      const colors = {
-        success: 'bg-green-700',
-        error:   'bg-red-600',
-        info:    'bg-blue-600',
-      }
-      toast.className = `fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium text-white ${colors[type] || colors.success}`
-      toast.textContent = msg
-      toast.classList.remove('hidden')
-      clearTimeout(toast._t)
-      toast._t = setTimeout(() => toast.classList.add('hidden'), 3000)
-    }
-
-    async function logout() {
-      await sb.auth.signOut()
-      window.location.href = 'index.html'
-    }
-
-    init()
-  </script>
+init()
+</script>
 </body>
 </html>
