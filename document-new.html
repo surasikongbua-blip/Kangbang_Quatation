@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>สร้างเอกสาร — Kang Bang</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Sarabun', sans-serif; }
+    .autocomplete-list { max-height: 200px; overflow-y: auto; }
+    .autocomplete-item:hover { background: #f0fdf4; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-green-800 text-white shadow-lg sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="dashboard.html" class="text-green-300 hover:text-white transition text-sm">← กลับ</a>
+        <span class="text-green-500">|</span>
+        <span class="font-bold" id="page-title">สร้างเอกสาร</span>
+      </div>
+      <button onclick="logout()" class="text-sm bg-green-700 hover:bg-green-600 px-3 py-1.5 rounded-lg transition">ออกจากระบบ</button>
+    </div>
+  </nav>
+
+  <div class="max-w-5xl mx-auto px-4 py-6">
+
+    <!-- Alert -->
+    <div id="alert" class="hidden mb-4 px-4 py-3 rounded-lg text-sm"></div>
+
+    <!-- Section 1: ประเภทเอกสาร -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
+      <h2 class="font-bold text-gray-700 mb-4">📄 ข้อมูลเอกสาร</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">ประเภทเอกสาร <span class="text-red-500">*</span></label>
+          <select id="doc-type" onchange="onDocTypeChange()"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+            <option value="quotation">ใบเสนอราคา</option>
+            <option value="receipt">ใบเสร็จรับเงิน</option>
+            <option value="delivery">ใบส่งสินค้า</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">เลขที่เอกสาร <span class="text-red-500">*</span></label>
+          <input id="doc-number" type="text" placeholder="เช่น QT-2026-03-001"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">สถานะ</label>
+          <select id="doc-status"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+            <option value="draft">ร่าง</option>
+            <option value="sent">ส่งแล้ว</option>
+            <option value="approved">อนุมัติ</option>
+            <option value="cancelled">ยกเลิก</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">วันที่ออกเอกสาร <span class="text-red-500">*</span></label>
+          <input id="issue-date" type="date"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
+        </div>
+        <div id="valid-until-wrap">
+          <label class="block text-sm font-medium text-gray-600 mb-1">ใช้ได้ถึง</label>
+          <input id="valid-until" type="date"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
+        </div>
+        <div id="ref-doc-wrap" class="hidden">
+          <label class="block text-sm font-medium text-gray-600 mb-1">อ้างอิงใบเสนอราคา</label>
+          <select id="ref-doc"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+            <option value="">— ไม่อ้างอิง —</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: ข้อมูลลูกค้า -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
+      <h2 class="font-bold text-gray-700 mb-4">👤 ข้อมูลลูกค้า</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">ชื่อลูกค้า <span class="text-red-500">*</span></label>
+          <input id="customer-name" type="text" placeholder="ชื่อ-นามสกุล หรือชื่อบริษัท"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">เบอร์โทร <span class="text-red-500">*</span></label>
+          <input id="customer-phone" type="text" placeholder="0XX-XXX-XXXX"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-medium text-gray-600 mb-1">ที่อยู่</label>
+          <textarea id="customer-address" rows="2" placeholder="ที่อยู่จัดส่ง"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">อีเมล</label>
+          <input id="customer-email" type="email" placeholder="example@email.com"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">เลขผู้เสียภาษี</label>
+          <input id="customer-tax" type="text" placeholder="0000000000000"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: รายการสินค้า -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-bold text-gray-700">📦 รายการสินค้า</h2>
+        <button onclick="addItem()"
+          class="flex items-center gap-1 px-3 py-1.5 bg-green-700 text-white rounded-lg hover:bg-green-800 transition text-sm">
+          + เพิ่มรายการ
+        </button>
+      </div>
+
+      <!-- Items Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-100">
+              <th class="text-left px-3 py-2 text-gray-500 font-medium w-8">#</th>
+              <th class="text-left px-3 py-2 text-gray-500 font-medium w-28">รหัสสินค้า</th>
+              <th class="text-left px-3 py-2 text-gray-500 font-medium">รายการ</th>
+              <th class="text-center px-3 py-2 text-gray-500 font-medium w-20">หน่วย</th>
+              <th class="text-center px-3 py-2 text-gray-500 font-medium w-20">จำนวน</th>
+              <th class="text-right px-3 py-2 text-gray-500 font-medium w-32">ราคา/หน่วย</th>
+              <th class="text-right px-3 py-2 text-gray-500 font-medium w-32">ยอดรวม</th>
+              <th class="w-8"></th>
+            </tr>
+          </thead>
+          <tbody id="items-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section 4: ยอดรวม -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+      <h2 class="font-bold text-gray-700 mb-4">💰 ยอดเงิน</h2>
+      <div class="max-w-sm ml-auto space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600 text-sm">ยอดรวม</span>
+          <span id="subtotal-display" class="font-medium">฿0.00</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2">
+            <span class="text-gray-600 text-sm">VAT</span>
+            <select id="vat-percent" onchange="calcTotal()"
+              class="px-2 py-1 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500">
+              <option value="0">ไม่มี VAT</option>
+              <option value="7" selected>7%</option>
+            </select>
+          </div>
+          <span id="vat-display" class="font-medium">฿0.00</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600 text-sm">ค่าขนส่ง</span>
+          <input id="shipping" type="number" min="0" step="0.01" value="0" onchange="calcTotal()"
+            class="w-32 px-2 py-1 border border-gray-200 rounded text-sm text-right focus:outline-none focus:ring-1 focus:ring-green-500"/>
+        </div>
+        <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+          <span class="font-bold text-gray-800">ยอดชำระรวมทั้งสิ้น</span>
+          <span id="total-display" class="font-bold text-green-700 text-lg">฿0.00</span>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="mt-4 pt-4 border-t border-gray-100">
+        <label class="block text-sm font-medium text-gray-600 mb-1">หมายเหตุ</label>
+        <textarea id="notes" rows="2" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"
+          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"></textarea>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-3 justify-end">
+      <a href="dashboard.html" class="px-6 py-2.5 border border-gray-300 text-gray-600 rounded-xl hover:bg-gray-100 transition text-sm font-medium">ยกเลิก</a>
+      <button onclick="saveDoc('draft')" class="px-6 py-2.5 border border-green-600 text-green-700 rounded-xl hover:bg-green-50 transition text-sm font-medium">บันทึกร่าง</button>
+      <button onclick="saveDoc('sent')" class="px-6 py-2.5 bg-green-700 text-white rounded-xl hover:bg-green-800 transition text-sm font-medium">บันทึก & ส่ง</button>
+    </div>
+  </div>
+
+  <!-- Autocomplete Dropdown -->
+  <div id="autocomplete-dropdown" class="hidden fixed z-50 bg-white border border-gray-200 rounded-xl shadow-lg autocomplete-list w-80"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://ygdcbkhaqsaiyymxvrph.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnZGNia2hhcXNhaXl5bXh2cnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzY4NTMsImV4cCI6MjA4ODYxMjg1M30.1quRttxAsp4b9471rdUh0zkdx97tfK9pW__0Bh3RWY0'
+    const { createClient } = supabase
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    let allProducts = []
+    let items = []
+    let editDocId = null
+    let currentAutocompleteRow = null
+
+    // ==================== INIT ====================
+    async function init() {
+      const { data: { session } } = await sb.auth.getSession()
+      if (!session) { window.location.href = 'index.html'; return }
+
+      // Set default date
+      document.getElementById('issue-date').value = new Date().toISOString().split('T')[0]
+
+      // Set default valid-until (+30 days)
+      const d = new Date(); d.setDate(d.getDate() + 30)
+      document.getElementById('valid-until').value = d.toISOString().split('T')[0]
+
+      // Load products
+      const { data } = await sb.from('products').select('*').order('code')
+      allProducts = data || []
+
+      // Load quotations for ref
+      await loadQuotations()
+
+      // Check edit mode
+      const params = new URLSearchParams(window.location.search)
+      editDocId = params.get('id')
+      if (editDocId) {
+        document.getElementById('page-title').textContent = 'แก้ไขเอกสาร'
+        await loadDoc(editDocId)
+      } else {
+        addItem() // เริ่มด้วย 1 รายการ
+        await generateDocNumber()
+      }
+    }
+
+    async function loadQuotations() {
+      const { data } = await sb.from('documents')
+        .select('id, doc_number, customer_name')
+        .eq('doc_type', 'quotation')
+        .order('created_at', { ascending: false })
+      const sel = document.getElementById('ref-doc')
+      ;(data || []).forEach(q => {
+        const opt = document.createElement('option')
+        opt.value = q.id
+        opt.textContent = `${q.doc_number} — ${q.customer_name}`
+        sel.appendChild(opt)
+      })
+    }
+
+    async function generateDocNumber() {
+      const type = document.getElementById('doc-type').value
+      const prefix = type === 'quotation' ? 'QT' : type === 'receipt' ? 'RC' : 'DV'
+      const now = new Date()
+      const y = now.getFullYear()
+      const m = String(now.getMonth() + 1).padStart(2, '0')
+
+      const { data } = await sb.from('documents')
+        .select('doc_number')
+        .like('doc_number', `${prefix}-${y}-${m}-%`)
+        .order('doc_number', { ascending: false })
+        .limit(1)
+
+      let seq = 1
+      if (data && data.length) {
+        const last = data[0].doc_number.split('-').pop()
+        seq = parseInt(last) + 1
+      }
+      document.getElementById('doc-number').value = `${prefix}-${y}-${m}-${String(seq).padStart(4, '0')}`
+    }
+
+    async function loadDoc(id) {
+      const { data: doc } = await sb.from('documents').select('*').eq('id', id).single()
+      const { data: docItems } = await sb.from('document_items').select('*').eq('document_id', id).order('sort_order')
+      if (!doc) return
+
+      document.getElementById('doc-type').value        = doc.doc_type
+      document.getElementById('doc-number').value      = doc.doc_number
+      document.getElementById('doc-status').value      = doc.status
+      document.getElementById('issue-date').value      = doc.issue_date
+      document.getElementById('valid-until').value     = doc.valid_until || ''
+      document.getElementById('customer-name').value   = doc.customer_name
+      document.getElementById('customer-phone').value  = doc.customer_phone
+      document.getElementById('customer-address').value = doc.customer_address || ''
+      document.getElementById('customer-email').value  = doc.customer_email || ''
+      document.getElementById('customer-tax').value    = doc.customer_tax_id || ''
+      document.getElementById('vat-percent').value     = doc.vat_percent
+      document.getElementById('shipping').value        = doc.shipping
+      document.getElementById('notes').value           = doc.notes || ''
+      if (doc.ref_doc_id) document.getElementById('ref-doc').value = doc.ref_doc_id
+
+      items = (docItems || []).map(i => ({
+        id: i.id,
+        product_id: i.product_id,
+        product_code: i.product_code || '',
+        product_name: i.product_name,
+        description: i.description || '',
+        unit: i.unit,
+        quantity: i.quantity,
+        unit_price: i.unit_price,
+        total_price: i.total_price,
+      }))
+      renderItems()
+      calcTotal()
+      onDocTypeChange()
+    }
+
+    // ==================== DOC TYPE ====================
+    function onDocTypeChange() {
+      const type = document.getElementById('doc-type').value
+      document.getElementById('valid-until-wrap').classList.toggle('hidden', type !== 'quotation')
+      document.getElementById('ref-doc-wrap').classList.toggle('hidden', type === 'quotation')
+      if (!editDocId) generateDocNumber()
+    }
+
+    // ==================== ITEMS ====================
+    function addItem() {
+      items.push({ product_id: null, product_code: '', product_name: '', description: '', unit: 'ชิ้น', quantity: 1, unit_price: 0, total_price: 0 })
+      renderItems()
+    }
+
+    function removeItem(idx) {
+      items.splice(idx, 1)
+      renderItems()
+      calcTotal()
+    }
+
+    function renderItems() {
+      const tbody = document.getElementById('items-tbody')
+      if (!items.length) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-400">ยังไม่มีรายการ กด "+ เพิ่มรายการ"</td></tr>`
+        return
+      }
+      tbody.innerHTML = items.map((item, idx) => `
+        <tr class="border-b border-gray-50" id="item-row-${idx}">
+          <td class="px-3 py-2 text-gray-400 text-xs">${idx + 1}</td>
+          <td class="px-3 py-2">
+            <div class="relative">
+              <input type="text" value="${item.product_code}"
+                placeholder="รหัส"
+                class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                onInput="onCodeInput(${idx}, this)"
+                onFocus="onCodeInput(${idx}, this)"
+                onBlur="closeAutocomplete()"
+                data-row="${idx}"/>
+            </div>
+          </td>
+          <td class="px-3 py-2">
+            <input type="text" value="${item.product_name}" placeholder="ชื่อสินค้า"
+              class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500 mb-1"
+              onchange="updateItem(${idx}, 'product_name', this.value)"/>
+            <input type="text" value="${item.description}" placeholder="รายละเอียด/ขนาด"
+              class="w-full px-2 py-1.5 border border-gray-100 rounded text-xs text-gray-500 focus:outline-none focus:ring-1 focus:ring-green-400"
+              onchange="updateItem(${idx}, 'description', this.value)"/>
+          </td>
+          <td class="px-3 py-2">
+            <input type="text" value="${item.unit}"
+              class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm text-center focus:outline-none focus:ring-1 focus:ring-green-500"
+              onchange="updateItem(${idx}, 'unit', this.value)"/>
+          </td>
+          <td class="px-3 py-2">
+            <input type="number" value="${item.quantity}" min="0" step="any"
+              class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm text-center focus:outline-none focus:ring-1 focus:ring-green-500"
+              onchange="updateItem(${idx}, 'quantity', parseFloat(this.value)||0)"/>
+          </td>
+          <td class="px-3 py-2">
+            <input type="number" value="${item.unit_price}" min="0" step="0.01"
+              class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm text-right focus:outline-none focus:ring-1 focus:ring-green-500"
+              onchange="updateItem(${idx}, 'unit_price', parseFloat(this.value)||0)"/>
+          </td>
+          <td class="px-3 py-2 text-right font-medium text-gray-700">
+            ฿${Number(item.total_price).toLocaleString('th-TH', {minimumFractionDigits:2})}
+          </td>
+          <td class="px-3 py-2 text-center">
+            <button onclick="removeItem(${idx})" class="text-red-400 hover:text-red-600 text-lg leading-none">&times;</button>
+          </td>
+        </tr>`).join('')
+    }
+
+    function updateItem(idx, field, value) {
+      items[idx][field] = value
+      if (field === 'quantity' || field === 'unit_price') {
+        items[idx].total_price = items[idx].quantity * items[idx].unit_price
+      }
+      renderItems()
+      calcTotal()
+    }
+
+    // ==================== AUTOCOMPLETE ====================
+    function onCodeInput(idx, input) {
+      const q = input.value.toLowerCase()
+      currentAutocompleteRow = idx
+      const matches = allProducts.filter(p =>
+        p.code.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)
+      ).slice(0, 8)
+
+      const dd = document.getElementById('autocomplete-dropdown')
+      if (!matches.length || !q) { dd.classList.add('hidden'); return }
+
+      const rect = input.getBoundingClientRect()
+      dd.style.top  = `${rect.bottom + window.scrollY + 4}px`
+      dd.style.left = `${rect.left + window.scrollX}px`
+      dd.style.width = '320px'
+      dd.classList.remove('hidden')
+      dd.innerHTML = matches.map(p => `
+        <div class="autocomplete-item px-4 py-2.5 cursor-pointer border-b border-gray-50 last:border-0"
+          onmousedown="selectProduct(${currentAutocompleteRow}, '${p.id}')">
+          <div class="flex justify-between items-center">
+            <span class="font-mono text-xs text-green-700 font-medium">${p.code}</span>
+            <span class="text-xs text-gray-400">${p.unit}</span>
+          </div>
+          <div class="text-sm text-gray-800">${p.name}</div>
+          ${p.description ? `<div class="text-xs text-gray-400">${p.description}</div>` : ''}
+          <div class="text-xs text-green-600 font-medium mt-0.5">฿${Number(p.price).toLocaleString('th-TH', {minimumFractionDigits:2})}</div>
+        </div>`).join('')
+    }
+
+    function selectProduct(idx, productId) {
+      const p = allProducts.find(x => x.id === productId)
+      if (!p) return
+      items[idx] = {
+        ...items[idx],
+        product_id: p.id,
+        product_code: p.code,
+        product_name: p.name,
+        description: p.description || '',
+        unit: p.unit,
+        unit_price: p.price,
+        total_price: items[idx].quantity * p.price,
+      }
+      closeAutocomplete()
+      renderItems()
+      calcTotal()
+    }
+
+    function closeAutocomplete() {
+      setTimeout(() => document.getElementById('autocomplete-dropdown').classList.add('hidden'), 150)
+    }
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#autocomplete-dropdown') && !e.target.closest('input')) {
+        closeAutocomplete()
+      }
+    })
+
+    // ==================== CALC ====================
+    function calcTotal() {
+      const subtotal = items.reduce((s, i) => s + (i.total_price || 0), 0)
+      const vatPct   = parseFloat(document.getElementById('vat-percent').value) || 0
+      const vatAmt   = subtotal * vatPct / 100
+      const shipping = parseFloat(document.getElementById('shipping').value) || 0
+      const total    = subtotal + vatAmt + shipping
+
+      const fmt = n => `฿${Number(n).toLocaleString('th-TH', {minimumFractionDigits:2})}`
+      document.getElementById('subtotal-display').textContent = fmt(subtotal)
+      document.getElementById('vat-display').textContent      = fmt(vatAmt)
+      document.getElementById('total-display').textContent    = fmt(total)
+    }
+
+    // ==================== SAVE ====================
+    async function saveDoc(statusOverride) {
+      const { data: { session } } = await sb.auth.getSession()
+      if (!session) { window.location.href = 'index.html'; return }
+
+      const docType    = document.getElementById('doc-type').value
+      const docNumber  = document.getElementById('doc-number').value.trim()
+      const issueDate  = document.getElementById('issue-date').value
+      const custName   = document.getElementById('customer-name').value.trim()
+      const custPhone  = document.getElementById('customer-phone').value.trim()
+
+      if (!docNumber || !issueDate || !custName || !custPhone) {
+        showAlert('กรุณากรอกข้อมูลให้ครบ (เลขที่เอกสาร, วันที่, ชื่อลูกค้า, เบอร์โทร)')
+        return
+      }
+      if (!items.length || items.every(i => !i.product_name)) {
+        showAlert('กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ')
+        return
+      }
+
+      const subtotal = items.reduce((s, i) => s + (i.total_price || 0), 0)
+      const vatPct   = parseFloat(document.getElementById('vat-percent').value) || 0
+      const vatAmt   = subtotal * vatPct / 100
+      const shipping = parseFloat(document.getElementById('shipping').value) || 0
+      const total    = subtotal + vatAmt + shipping
+      const refDoc   = document.getElementById('ref-doc').value || null
+      const validUntil = document.getElementById('valid-until').value || null
+
+      const docPayload = {
+        doc_type:         docType,
+        doc_number:       docNumber,
+        status:           statusOverride || document.getElementById('doc-status').value,
+        issue_date:       issueDate,
+        valid_until:      docType === 'quotation' ? validUntil : null,
+        ref_doc_id:       docType !== 'quotation' ? refDoc : null,
+        customer_name:    custName,
+        customer_phone:   custPhone,
+        customer_address: document.getElementById('customer-address').value || null,
+        customer_email:   document.getElementById('customer-email').value || null,
+        customer_tax_id:  document.getElementById('customer-tax').value || null,
+        subtotal, vat_percent: vatPct, vat_amount: vatAmt, shipping, total,
+        notes: document.getElementById('notes').value || null,
+        created_by: session.user.id,
+      }
+
+      let docId = editDocId
+      if (editDocId) {
+        const { error } = await sb.from('documents').update(docPayload).eq('id', editDocId)
+        if (error) { showAlert('บันทึกไม่สำเร็จ: ' + error.message); return }
+        await sb.from('document_items').delete().eq('document_id', editDocId)
+      } else {
+        const { data, error } = await sb.from('documents').insert(docPayload).select().single()
+        if (error) {
+          showAlert(error.code === '23505' ? 'เลขที่เอกสารนี้มีอยู่แล้ว' : 'บันทึกไม่สำเร็จ: ' + error.message)
+          return
+        }
+        docId = data.id
+      }
+
+      // Save items
+      const itemsPayload = items.filter(i => i.product_name).map((i, idx) => ({
+        document_id:  docId,
+        sort_order:   idx,
+        product_id:   i.product_id || null,
+        product_code: i.product_code || null,
+        product_name: i.product_name,
+        description:  i.description || null,
+        unit:         i.unit,
+        quantity:     i.quantity,
+        unit_price:   i.unit_price,
+        total_price:  i.total_price,
+      }))
+
+      const { error: itemsError } = await sb.from('document_items').insert(itemsPayload)
+      if (itemsError) { showAlert('บันทึกรายการสินค้าไม่สำเร็จ: ' + itemsError.message); return }
+
+      showAlert('บันทึกเรียบร้อย! กำลังไปหน้าดูเอกสาร...', 'success')
+      setTimeout(() => window.location.href = `document-view.html?id=${docId}`, 1000)
+    }
+
+    function showAlert(msg, type = 'error') {
+      const el = document.getElementById('alert')
+      el.className = `mb-4 px-4 py-3 rounded-lg text-sm ${type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`
+      el.textContent = msg
+      el.classList.remove('hidden')
+      if (type === 'success') setTimeout(() => el.classList.add('hidden'), 3000)
+      else el.scrollIntoView({ behavior: 'smooth' })
+    }
+
+    async function logout() {
+      await sb.auth.signOut()
+      window.location.href = 'index.html'
+    }
+
+    init()
+  </script>
+</body>
+</html>
