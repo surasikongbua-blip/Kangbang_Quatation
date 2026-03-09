@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ดูเอกสาร — Kang Bang</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Sarabun', sans-serif; }
+
+    /* =============== PRINT STYLES =============== */
+    @media print {
+      body { background: white !important; }
+      .no-print { display: none !important; }
+      .print-page {
+        box-shadow: none !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        padding: 32px !important;
+      }
+      @page { margin: 10mm; size: A4; }
+    }
+
+    /* =============== DOCUMENT CARD =============== */
+    .print-page {
+      background: white;
+      width: 210mm;
+      min-height: 270mm;
+      margin: 0 auto;
+      padding: 40px 44px;
+      box-shadow: 0 4px 40px rgba(0,0,0,0.10);
+      border-radius: 12px;
+      position: relative;
+    }
+
+    /* Header accent bar */
+    .doc-accent-bar {
+      height: 5px;
+      background: linear-gradient(90deg, #166534 0%, #16a34a 60%, #4ade80 100%);
+      border-radius: 3px;
+      margin-bottom: 28px;
+    }
+
+    /* Company logo placeholder */
+    .company-logo {
+      width: 64px;
+      height: 64px;
+      background: #166534;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    /* Table styles */
+    .items-table { border-collapse: collapse; width: 100%; }
+    .items-table thead tr {
+      background: #14532d;
+      color: white;
+    }
+    .items-table thead th {
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .items-table tbody tr { border-bottom: 1px solid #f0fdf4; }
+    .items-table tbody tr:nth-child(even) { background: #f9fefb; }
+    .items-table tbody td { padding: 10px 12px; font-size: 13px; color: #374151; }
+
+    /* Total section */
+    .total-box {
+      background: linear-gradient(135deg, #14532d 0%, #166534 100%);
+      border-radius: 10px;
+      padding: 16px 24px;
+      color: white;
+    }
+
+    /* Status badge */
+    .status-badge {
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Watermark for cancelled */
+    .watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-35deg);
+      font-size: 80px;
+      font-weight: 900;
+      color: rgba(239,68,68,0.08);
+      pointer-events: none;
+      white-space: nowrap;
+      letter-spacing: 8px;
+      z-index: 0;
+    }
+
+    /* Signature line */
+    .sig-line {
+      border-top: 1.5px solid #166534;
+      width: 180px;
+      margin: 0 auto;
+    }
+
+    /* Footer strip */
+    .doc-footer-strip {
+      background: #f0fdf4;
+      border-top: 2px solid #bbf7d0;
+      margin: 28px -44px -40px;
+      padding: 12px 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 0 0 12px 12px;
+    }
+
+    /* Action toolbar */
+    .action-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 999px;
+      padding: 10px 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 100;
+    }
+
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap-6px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: none;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid #d1d5db;
+      color: #4b5563;
+    }
+    .btn-outline:hover { background: #f9fafb; border-color: #9ca3af; }
+
+    .btn-green {
+      background: #166534;
+      color: white;
+    }
+    .btn-green:hover { background: #14532d; }
+
+    .btn-blue {
+      background: #1d4ed8;
+      color: white;
+    }
+    .btn-blue:hover { background: #1e40af; }
+
+    .btn-orange {
+      background: #ea580c;
+      color: white;
+    }
+    .btn-orange:hover { background: #c2410c; }
+
+    /* Loading overlay */
+    #loading-overlay {
+      position: fixed; inset: 0;
+      background: rgba(255,255,255,0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      gap: 12px;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #bbf7d0;
+      border-top-color: #166534;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Customer info box */
+    .customer-box {
+      background: #f0fdf4;
+      border-left: 4px solid #16a34a;
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen pb-28">
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <p class="text-green-700 font-medium text-sm">กำลังโหลดเอกสาร...</p>
+  </div>
+
+  <!-- Navbar (no-print) -->
+  <nav class="no-print bg-green-800 text-white shadow-lg sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="dashboard.html" class="text-green-300 hover:text-white transition text-sm">← กลับ</a>
+        <span class="text-green-500">|</span>
+        <span class="text-xl">👍</span>
+        <span class="font-bold text-sm" id="nav-title">ดูเอกสาร</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="nav-status-badge" class="text-xs px-3 py-1 rounded-full font-semibold"></span>
+        <button onclick="logout()" class="text-sm bg-green-700 hover:bg-green-600 px-3 py-1.5 rounded-lg transition">ออกจากระบบ</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Document Wrapper -->
+  <div class="max-w-5xl mx-auto px-4 py-6">
+
+    <!-- Document Card (printable) -->
+    <div class="print-page" id="document-card">
+
+      <!-- Watermark (shown for cancelled) -->
+      <div id="watermark" class="watermark hidden">ยกเลิก</div>
+
+      <!-- Accent Bar -->
+      <div class="doc-accent-bar"></div>
+
+      <!-- Header: Company + Doc Title -->
+      <div class="flex justify-between items-start mb-8">
+        <!-- Company Info -->
+        <div class="flex items-start gap-4">
+          <div class="company-logo">👍</div>
+          <div>
+            <div class="font-bold text-green-800 text-lg leading-tight">บริษัท คัง ปั้ง วัสดุก่อสร้าง จำกัด</div>
+            <div class="text-gray-500 text-xs mt-1.5 leading-relaxed">
+              28/101 หมู่ที่ 19 ตำบลบางพลีใหญ่ อำเภอบางพลี จังหวัดสมุทรปราการ 10540<br/>
+              โทร: 063-4465622 &nbsp;|&nbsp; อีเมล: kangbang.thai@gmail.com<br/>
+              เลขประจำตัวผู้เสียภาษีอากร: 0 1155 66014 56 8
+            </div>
+          </div>
+        </div>
+
+        <!-- Doc Title & Number -->
+        <div class="text-right">
+          <div id="doc-title-th" class="text-green-800 font-extrabold text-3xl mb-3"></div>
+          <div class="text-xs text-gray-500 space-y-1">
+            <div class="flex justify-end gap-2">
+              <span class="text-gray-400">เลขที่</span>
+              <span id="view-doc-number" class="font-bold text-gray-800 text-sm"></span>
+            </div>
+            <div class="flex justify-end gap-2">
+              <span class="text-gray-400">วันที่</span>
+              <span id="view-issue-date" class="text-gray-700"></span>
+            </div>
+            <div id="valid-row" class="flex justify-end gap-2 hidden">
+              <span class="text-gray-400">ใช้ได้ถึง</span>
+              <span id="view-valid-until" class="text-gray-700"></span>
+            </div>
+            <div id="ref-row" class="flex justify-end gap-2 hidden">
+              <span class="text-gray-400">อ้างอิง</span>
+              <span id="view-ref-doc" class="text-gray-700"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer Info -->
+      <div class="customer-box mb-8">
+        <div class="text-xs text-green-700 font-semibold mb-1" id="customer-label">เสนอราคาให้กับ</div>
+        <div id="view-customer-name" class="font-bold text-gray-800 text-xl mb-1"></div>
+        <div class="flex flex-wrap gap-4 text-sm text-gray-600">
+          <div id="view-customer-phone" class="flex items-center gap-1"></div>
+          <div id="view-customer-email" class="hidden flex items-center gap-1"></div>
+        </div>
+        <div id="view-customer-address" class="text-xs text-gray-500 mt-1 hidden"></div>
+        <div id="view-customer-tax" class="text-xs text-gray-400 mt-0.5 hidden"></div>
+      </div>
+
+      <!-- Items Table -->
+      <table class="items-table mb-6">
+        <thead>
+          <tr>
+            <th class="text-center w-8">#</th>
+            <th class="text-left w-24">รหัสสินค้า</th>
+            <th class="text-left">รายการ</th>
+            <th class="text-center w-16">หน่วย</th>
+            <th class="text-center w-20">จำนวน</th>
+            <th class="text-right w-32">ราคา/หน่วย (฿)</th>
+            <th class="text-right w-32">ยอดรวม (฿)</th>
+          </tr>
+        </thead>
+        <tbody id="view-items-tbody">
+        </tbody>
+      </table>
+
+      <!-- Totals + Signature -->
+      <div class="flex justify-between items-end gap-8">
+
+        <!-- Notes -->
+        <div class="flex-1">
+          <div id="notes-section" class="hidden">
+            <div class="text-xs text-gray-400 font-medium mb-1">หมายเหตุ</div>
+            <div id="view-notes" class="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100"></div>
+          </div>
+          <div class="mt-4 text-xs text-gray-400 italic" id="shipping-note-text"></div>
+        </div>
+
+        <!-- Totals -->
+        <div class="w-64 flex-shrink-0 space-y-2">
+          <div class="flex justify-between text-sm text-gray-600">
+            <span>ยอดรวม</span>
+            <span id="view-subtotal" class="font-medium text-gray-800"></span>
+          </div>
+          <div id="vat-row" class="flex justify-between text-sm text-gray-600 hidden">
+            <span id="vat-label">VAT 7%</span>
+            <span id="view-vat" class="font-medium text-gray-800"></span>
+          </div>
+          <div id="shipping-row" class="flex justify-between text-sm text-gray-600 hidden">
+            <span>ค่าขนส่ง</span>
+            <span id="view-shipping" class="font-medium text-gray-800"></span>
+          </div>
+          <div class="total-box mt-3">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-sm text-green-200">ยอดชำระรวมทั้งสิ้น</span>
+              <span id="view-total" class="font-extrabold text-xl text-white"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signature -->
+      <div class="flex justify-end mt-12 mb-4">
+        <div class="text-center">
+          <div class="h-12"></div>
+          <div class="sig-line"></div>
+          <div class="text-sm text-gray-700 mt-2 font-medium">ผู้มีอำนาจลงนาม</div>
+          <div class="text-xs text-gray-400">บริษัท คัง ปั้ง วัสดุก่อสร้าง จำกัด</div>
+        </div>
+      </div>
+
+      <!-- Footer strip -->
+      <div class="doc-footer-strip">
+        <div class="text-xs text-green-700 font-semibold tracking-widest uppercase" id="footer-doc-type"></div>
+        <div class="text-xs text-gray-400" id="footer-doc-info"></div>
+      </div>
+
+    </div>
+    <!-- /print-page -->
+
+  </div>
+
+  <!-- ===================== ACTION BAR (no-print) ===================== -->
+  <div class="action-bar no-print" id="action-bar">
+
+    <!-- Back -->
+    <a href="dashboard.html">
+      <button class="action-btn btn-outline">← รายการ</button>
+    </a>
+
+    <div class="w-px h-6 bg-gray-200 mx-1"></div>
+
+    <!-- Edit -->
+    <button class="action-btn btn-outline" id="btn-edit" onclick="editDoc()">
+      ✏️ แก้ไข
+    </button>
+
+    <!-- Status -->
+    <div class="relative" id="status-dropdown-wrap">
+      <button class="action-btn btn-outline" onclick="toggleStatusDropdown()">
+        🔄 เปลี่ยนสถานะ ▾
+      </button>
+      <div id="status-dropdown" class="hidden absolute bottom-12 left-0 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden w-40 z-50">
+        <button onclick="changeStatus('draft')"    class="block w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 text-gray-600">📝 ร่าง</button>
+        <button onclick="changeStatus('sent')"     class="block w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 text-yellow-700">📤 ส่งแล้ว</button>
+        <button onclick="changeStatus('approved')" class="block w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 text-green-700">✅ อนุมัติ</button>
+        <button onclick="changeStatus('cancelled')" class="block w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 text-red-600">❌ ยกเลิก</button>
+      </div>
+    </div>
+
+    <div class="w-px h-6 bg-gray-200 mx-1"></div>
+
+    <!-- Save Image -->
+    <button class="action-btn btn-orange" onclick="saveAsImage()">
+      🖼️ บันทึกรูป
+    </button>
+
+    <!-- Print / PDF -->
+    <button class="action-btn btn-green" onclick="printDoc()">
+      🖨️ พิมพ์ / PDF
+    </button>
+
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed top-6 right-6 z-50 hidden px-5 py-3 rounded-xl shadow-lg text-sm font-medium text-white transition-all"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://ygdcbkhaqsaiyymxvrph.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnZGNia2hhcXNhaXl5bXh2cnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzY4NTMsImV4cCI6MjA4ODYxMjg1M30.1quRttxAsp4b9471rdUh0zkdx97tfK9pW__0Bh3RWY0'
+    const { createClient } = supabase
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    let currentDoc = null
+    let currentDocId = null
+
+    const DOC_TYPE = {
+      quotation: { th: 'ใบเสนอราคา', en: 'QUOTATION',      customer_label: 'เสนอราคาให้กับ' },
+      receipt:   { th: 'ใบเสร็จรับเงิน', en: 'RECEIPT',    customer_label: 'ออกให้กับ' },
+      delivery:  { th: 'ใบส่งสินค้า', en: 'DELIVERY ORDER', customer_label: 'จัดส่งให้กับ' },
+    }
+
+    const STATUS_STYLES = {
+      draft:     { label: 'ร่าง',    bg: 'bg-gray-100', text: 'text-gray-600',   nav: 'bg-gray-200 text-gray-700' },
+      sent:      { label: 'ส่งแล้ว', bg: 'bg-yellow-100', text: 'text-yellow-700', nav: 'bg-yellow-100 text-yellow-800' },
+      approved:  { label: 'อนุมัติ', bg: 'bg-green-100',  text: 'text-green-700',  nav: 'bg-green-100 text-green-800' },
+      cancelled: { label: 'ยกเลิก', bg: 'bg-red-100',    text: 'text-red-600',    nav: 'bg-red-100 text-red-700' },
+    }
+
+    function fmtDate(str) {
+      if (!str) return '—'
+      return new Date(str).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
+    }
+
+    function fmtMoney(n) {
+      return '฿' + Number(n || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })
+    }
+
+    async function init() {
+      const { data: { session } } = await sb.auth.getSession()
+      if (!session) { window.location.href = 'index.html'; return }
+
+      const params = new URLSearchParams(window.location.search)
+      currentDocId = params.get('id')
+      if (!currentDocId) { window.location.href = 'dashboard.html'; return }
+
+      await loadDoc(currentDocId)
+      document.getElementById('loading-overlay').style.display = 'none'
+    }
+
+    async function loadDoc(id) {
+      const { data: doc, error } = await sb.from('documents').select('*').eq('id', id).single()
+      if (error || !doc) { showToast('ไม่พบเอกสาร', 'error'); return }
+
+      const { data: docItems } = await sb
+        .from('document_items').select('*')
+        .eq('document_id', id).order('sort_order')
+
+      currentDoc = { ...doc, items: docItems || [] }
+      renderDoc()
+    }
+
+    function renderDoc() {
+      const d = currentDoc
+      const type = DOC_TYPE[d.doc_type] || DOC_TYPE.quotation
+      const status = STATUS_STYLES[d.status] || STATUS_STYLES.draft
+
+      // Navbar
+      document.getElementById('nav-title').textContent = `${type.th} · ${d.doc_number}`
+      document.title = `${type.th} ${d.doc_number} — Kang Bang`
+      const navBadge = document.getElementById('nav-status-badge')
+      navBadge.textContent = status.label
+      navBadge.className = `text-xs px-3 py-1 rounded-full font-semibold ${status.nav}`
+
+      // Doc title
+      document.getElementById('doc-title-th').textContent = type.th
+      document.getElementById('view-doc-number').textContent = d.doc_number
+      document.getElementById('view-issue-date').textContent = fmtDate(d.issue_date)
+      document.getElementById('customer-label').textContent = type.customer_label
+
+      // Valid until (quotation only)
+      if (d.valid_until && d.doc_type === 'quotation') {
+        document.getElementById('valid-row').classList.remove('hidden')
+        document.getElementById('view-valid-until').textContent = fmtDate(d.valid_until)
+      }
+
+      // Ref doc
+      if (d.ref_doc_id) {
+        document.getElementById('ref-row').classList.remove('hidden')
+        loadRefDocNumber(d.ref_doc_id)
+      }
+
+      // Customer
+      document.getElementById('view-customer-name').textContent = d.customer_name
+      const phoneEl = document.getElementById('view-customer-phone')
+      phoneEl.innerHTML = `📞 ${d.customer_phone}`
+
+      if (d.customer_email) {
+        const emailEl = document.getElementById('view-customer-email')
+        emailEl.innerHTML = `✉️ ${d.customer_email}`
+        emailEl.classList.remove('hidden')
+      }
+      if (d.customer_address) {
+        const addrEl = document.getElementById('view-customer-address')
+        addrEl.textContent = '📍 ' + d.customer_address
+        addrEl.classList.remove('hidden')
+      }
+      if (d.customer_tax_id) {
+        const taxEl = document.getElementById('view-customer-tax')
+        taxEl.textContent = 'เลขผู้เสียภาษี: ' + d.customer_tax_id
+        taxEl.classList.remove('hidden')
+      }
+
+      // Items
+      const tbody = document.getElementById('view-items-tbody')
+      if (!currentDoc.items.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-400">ไม่มีรายการ</td></tr>`
+      } else {
+        tbody.innerHTML = currentDoc.items.map((item, i) => `
+          <tr>
+            <td class="text-center text-gray-400">${i + 1}</td>
+            <td class="font-mono text-green-700 font-medium">${item.product_code || '—'}</td>
+            <td>
+              <div class="font-medium text-gray-800">${item.product_name}</div>
+              ${item.description ? `<div class="text-xs text-gray-400 mt-0.5">${item.description}</div>` : ''}
+            </td>
+            <td class="text-center">${item.unit}</td>
+            <td class="text-center font-medium">${Number(item.quantity).toLocaleString('th-TH')}</td>
+            <td class="text-right">${Number(item.unit_price).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+            <td class="text-right font-semibold text-gray-800">${Number(item.total_price).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+          </tr>`).join('')
+      }
+
+      // Totals
+      document.getElementById('view-subtotal').textContent = fmtMoney(d.subtotal)
+      if (d.vat_percent > 0) {
+        document.getElementById('vat-row').classList.remove('hidden')
+        document.getElementById('vat-label').textContent = `VAT ${d.vat_percent}%`
+        document.getElementById('view-vat').textContent = fmtMoney(d.vat_amount)
+      }
+      if (d.shipping > 0) {
+        document.getElementById('shipping-row').classList.remove('hidden')
+        document.getElementById('view-shipping').textContent = fmtMoney(d.shipping)
+      }
+      document.getElementById('view-total').textContent = fmtMoney(d.total)
+
+      // Shipping note
+      if (d.shipping === 0 || !d.shipping) {
+        document.getElementById('shipping-note-text').textContent = '* ค่าจัดส่งรวมอยู่ในราคาสินค้าแล้ว'
+      }
+
+      // Notes
+      if (d.notes) {
+        document.getElementById('notes-section').classList.remove('hidden')
+        document.getElementById('view-notes').textContent = d.notes
+      }
+
+      // Footer
+      document.getElementById('footer-doc-type').textContent = type.en
+      document.getElementById('footer-doc-info').textContent = `${d.doc_number} · บริษัท คัง ปั้ง วัสดุก่อสร้าง จำกัด`
+
+      // Watermark
+      if (d.status === 'cancelled') {
+        document.getElementById('watermark').classList.remove('hidden')
+      }
+    }
+
+    async function loadRefDocNumber(refId) {
+      const { data } = await sb.from('documents').select('doc_number').eq('id', refId).single()
+      if (data) document.getElementById('view-ref-doc').textContent = data.doc_number
+    }
+
+    // ===================== ACTIONS =====================
+
+    function editDoc() {
+      window.location.href = `document-new.html?id=${currentDocId}`
+    }
+
+    function toggleStatusDropdown() {
+      document.getElementById('status-dropdown').classList.toggle('hidden')
+    }
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#status-dropdown-wrap')) {
+        document.getElementById('status-dropdown').classList.add('hidden')
+      }
+    })
+
+    async function changeStatus(newStatus) {
+      document.getElementById('status-dropdown').classList.add('hidden')
+      const { error } = await sb.from('documents').update({ status: newStatus }).eq('id', currentDocId)
+      if (error) { showToast('เกิดข้อผิดพลาด: ' + error.message, 'error'); return }
+      currentDoc.status = newStatus
+      renderDoc()
+      showToast('เปลี่ยนสถานะเรียบร้อย ✓')
+    }
+
+    function printDoc() {
+      window.print()
+    }
+
+    async function saveAsImage() {
+      const card = document.getElementById('document-card')
+      showToast('กำลังสร้างรูปภาพ...', 'info')
+      try {
+        const canvas = await html2canvas(card, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+        })
+        const link = document.createElement('a')
+        link.download = `${currentDoc.doc_number}.png`
+        link.href = canvas.toDataURL('image/png')
+        link.click()
+        showToast('บันทึกรูปภาพเรียบร้อย ✓')
+      } catch (e) {
+        showToast('ไม่สามารถบันทึกรูปได้: ' + e.message, 'error')
+      }
+    }
+
+    function showToast(msg, type = 'success') {
+      const toast = document.getElementById('toast')
+      const colors = {
+        success: 'bg-green-700',
+        error:   'bg-red-600',
+        info:    'bg-blue-600',
+      }
+      toast.className = `fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium text-white ${colors[type] || colors.success}`
+      toast.textContent = msg
+      toast.classList.remove('hidden')
+      clearTimeout(toast._t)
+      toast._t = setTimeout(() => toast.classList.add('hidden'), 3000)
+    }
+
+    async function logout() {
+      await sb.auth.signOut()
+      window.location.href = 'index.html'
+    }
+
+    init()
+  </script>
+</body>
+</html>
