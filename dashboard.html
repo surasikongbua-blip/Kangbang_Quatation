@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — Kang Bang</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Sarabun', sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-green-800 text-white shadow-lg sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">👍</span>
+        <span class="font-bold text-lg">Kang Bang</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="user-email" class="text-green-200 text-sm hidden sm:block"></span>
+        <button onclick="logout()" class="ml-3 text-sm bg-green-700 hover:bg-green-600 px-3 py-1.5 rounded-lg transition">ออกจากระบบ</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">เอกสารทั้งหมด</h1>
+        <p class="text-gray-500 text-sm mt-0.5">จัดการใบเสนอราคา ใบเสร็จ และใบส่งสินค้า</p>
+      </div>
+      <div class="flex gap-2">
+        <a href="products.html" class="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-600 rounded-xl hover:bg-gray-100 transition text-sm font-medium">
+          📦 สินค้า
+        </a>
+        <a href="document-new.html" class="flex items-center gap-2 px-4 py-2 bg-green-700 text-white rounded-xl hover:bg-green-800 transition text-sm font-medium">
+          + สร้างเอกสาร
+        </a>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <p class="text-xs text-gray-500 mb-1">ใบเสนอราคา</p>
+        <p id="count-quotation" class="text-2xl font-bold text-green-700">—</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <p class="text-xs text-gray-500 mb-1">ใบเสร็จรับเงิน</p>
+        <p id="count-receipt" class="text-2xl font-bold text-blue-600">—</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <p class="text-xs text-gray-500 mb-1">ใบส่งสินค้า</p>
+        <p id="count-delivery" class="text-2xl font-bold text-orange-500">—</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <p class="text-xs text-gray-500 mb-1">ทั้งหมด</p>
+        <p id="count-total" class="text-2xl font-bold text-gray-700">—</p>
+      </div>
+    </div>
+
+    <!-- Filter & Search -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
+      <div class="flex flex-col sm:flex-row gap-3">
+        <input id="search" type="text" placeholder="ค้นหาเลขที่เอกสาร หรือชื่อลูกค้า..."
+          class="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          oninput="filterDocs()"/>
+        <select id="filter-type" onchange="filterDocs()"
+          class="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          <option value="">ทุกประเภท</option>
+          <option value="quotation">ใบเสนอราคา</option>
+          <option value="receipt">ใบเสร็จรับเงิน</option>
+          <option value="delivery">ใบส่งสินค้า</option>
+        </select>
+        <select id="filter-status" onchange="filterDocs()"
+          class="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          <option value="">ทุกสถานะ</option>
+          <option value="draft">ร่าง</option>
+          <option value="sent">ส่งแล้ว</option>
+          <option value="approved">อนุมัติ</option>
+          <option value="cancelled">ยกเลิก</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-100">
+              <th class="text-left px-4 py-3 text-gray-500 font-medium">เลขที่เอกสาร</th>
+              <th class="text-left px-4 py-3 text-gray-500 font-medium">ประเภท</th>
+              <th class="text-left px-4 py-3 text-gray-500 font-medium">ลูกค้า</th>
+              <th class="text-left px-4 py-3 text-gray-500 font-medium hidden sm:table-cell">วันที่</th>
+              <th class="text-right px-4 py-3 text-gray-500 font-medium">ยอดรวม</th>
+              <th class="text-center px-4 py-3 text-gray-500 font-medium">สถานะ</th>
+              <th class="text-center px-4 py-3 text-gray-500 font-medium">จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="doc-table-body">
+            <tr>
+              <td colspan="7" class="text-center py-12 text-gray-400">
+                <div class="animate-pulse">กำลังโหลด...</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL'
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'
+    const { createClient } = supabase
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    let allDocs = []
+
+    const DOC_TYPE_LABEL = {
+      quotation: { label: 'ใบเสนอราคา', color: 'bg-green-100 text-green-700' },
+      receipt:   { label: 'ใบเสร็จรับเงิน', color: 'bg-blue-100 text-blue-700' },
+      delivery:  { label: 'ใบส่งสินค้า', color: 'bg-orange-100 text-orange-700' },
+    }
+    const STATUS_LABEL = {
+      draft:     { label: 'ร่าง',    color: 'bg-gray-100 text-gray-600' },
+      sent:      { label: 'ส่งแล้ว', color: 'bg-yellow-100 text-yellow-700' },
+      approved:  { label: 'อนุมัติ', color: 'bg-green-100 text-green-700' },
+      cancelled: { label: 'ยกเลิก', color: 'bg-red-100 text-red-600' },
+    }
+
+    async function init() {
+      const { data: { session } } = await sb.auth.getSession()
+      if (!session) { window.location.href = 'index.html'; return }
+      document.getElementById('user-email').textContent = session.user.email
+
+      const { data, error } = await sb
+        .from('documents')
+        .select('id, doc_number, doc_type, customer_name, issue_date, total, status')
+        .order('created_at', { ascending: false })
+
+      if (error) { console.error(error); return }
+
+      allDocs = data || []
+      updateStats()
+      renderTable(allDocs)
+    }
+
+    function updateStats() {
+      document.getElementById('count-quotation').textContent = allDocs.filter(d => d.doc_type === 'quotation').length
+      document.getElementById('count-receipt').textContent   = allDocs.filter(d => d.doc_type === 'receipt').length
+      document.getElementById('count-delivery').textContent  = allDocs.filter(d => d.doc_type === 'delivery').length
+      document.getElementById('count-total').textContent     = allDocs.length
+    }
+
+    function filterDocs() {
+      const search = document.getElementById('search').value.toLowerCase()
+      const type   = document.getElementById('filter-type').value
+      const status = document.getElementById('filter-status').value
+      const filtered = allDocs.filter(d =>
+        (!search || d.doc_number.toLowerCase().includes(search) || d.customer_name.toLowerCase().includes(search)) &&
+        (!type   || d.doc_type === type) &&
+        (!status || d.status === status)
+      )
+      renderTable(filtered)
+    }
+
+    function renderTable(docs) {
+      const tbody = document.getElementById('doc-table-body')
+      if (!docs.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12 text-gray-400">ไม่พบเอกสาร</td></tr>`
+        return
+      }
+      tbody.innerHTML = docs.map(d => {
+        const type   = DOC_TYPE_LABEL[d.doc_type] || { label: d.doc_type, color: 'bg-gray-100 text-gray-600' }
+        const status = STATUS_LABEL[d.status]     || { label: d.status,   color: 'bg-gray-100 text-gray-600' }
+        const date   = d.issue_date ? new Date(d.issue_date).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'
+        const total  = Number(d.total).toLocaleString('th-TH', { minimumFractionDigits: 2 })
+        return `
+          <tr class="border-b border-gray-50 hover:bg-gray-50 transition cursor-pointer" onclick="viewDoc('${d.id}')">
+            <td class="px-4 py-3 font-medium text-gray-800">${d.doc_number}</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-medium ${type.color}">${type.label}</span></td>
+            <td class="px-4 py-3 text-gray-600">${d.customer_name}</td>
+            <td class="px-4 py-3 text-gray-500 hidden sm:table-cell">${date}</td>
+            <td class="px-4 py-3 text-right font-medium text-gray-800">฿${total}</td>
+            <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-medium ${status.color}">${status.label}</span></td>
+            <td class="px-4 py-3 text-center">
+              <div class="flex items-center justify-center gap-2" onclick="event.stopPropagation()">
+                <button onclick="viewDoc('${d.id}')" class="text-green-600 hover:text-green-800 text-xs font-medium">ดู</button>
+                <span class="text-gray-300">|</span>
+                <button onclick="editDoc('${d.id}')" class="text-blue-500 hover:text-blue-700 text-xs font-medium">แก้ไข</button>
+                <span class="text-gray-300">|</span>
+                <button onclick="deleteDoc('${d.id}', '${d.doc_number}')" class="text-red-400 hover:text-red-600 text-xs font-medium">ลบ</button>
+              </div>
+            </td>
+          </tr>`
+      }).join('')
+    }
+
+    function viewDoc(id) {
+      window.location.href = `document-view.html?id=${id}`
+    }
+
+    function editDoc(id) {
+      window.location.href = `document-new.html?id=${id}`
+    }
+
+    async function deleteDoc(id, docNumber) {
+      if (!confirm(`ยืนยันลบเอกสาร ${docNumber} ?`)) return
+      const { error } = await sb.from('documents').delete().eq('id', id)
+      if (error) { alert('เกิดข้อผิดพลาด: ' + error.message); return }
+      allDocs = allDocs.filter(d => d.id !== id)
+      updateStats()
+      filterDocs()
+    }
+
+    async function logout() {
+      await sb.auth.signOut()
+      window.location.href = 'index.html'
+    }
+
+    init()
+  </script>
+</body>
+</html>

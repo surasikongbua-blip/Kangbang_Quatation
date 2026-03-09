@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>เข้าสู่ระบบ — Kang Bang</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Sarabun', sans-serif; }
+    .bg-pattern {
+      background-color: #f0fdf4;
+      background-image: radial-gradient(#bbf7d0 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+  </style>
+</head>
+<body class="bg-pattern min-h-screen flex items-center justify-center">
+
+  <div class="w-full max-w-md mx-4">
+    <!-- Card -->
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+
+      <!-- Header -->
+      <div class="bg-green-800 px-8 py-8 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4 shadow">
+          <span class="text-3xl">👍</span>
+        </div>
+        <h1 class="text-white text-2xl font-bold">Kang Bang</h1>
+        <p class="text-green-200 text-sm mt-1">ระบบออกเอกสารธุรกิจ</p>
+      </div>
+
+      <!-- Form -->
+      <div class="px-8 py-8">
+        <h2 class="text-gray-700 text-lg font-semibold mb-6 text-center">เข้าสู่ระบบ</h2>
+
+        <!-- Alert -->
+        <div id="alert" class="hidden mb-4 px-4 py-3 rounded-lg text-sm"></div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">อีเมล</label>
+            <input id="email" type="email" placeholder="example@email.com"
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"/>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">รหัสผ่าน</label>
+            <div class="relative">
+              <input id="password" type="password" placeholder="••••••••"
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"/>
+              <button onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs">แสดง</button>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="login()"
+          class="w-full mt-6 bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded-xl transition flex items-center justify-center gap-2">
+          <span id="btn-text">เข้าสู่ระบบ</span>
+          <svg id="btn-spin" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+          </svg>
+        </button>
+
+        <!-- Divider -->
+        <div class="flex items-center gap-3 my-5">
+          <div class="flex-1 h-px bg-gray-200"></div>
+          <span class="text-xs text-gray-400">หรือ</span>
+          <div class="flex-1 h-px bg-gray-200"></div>
+        </div>
+
+        <!-- Google Login -->
+        <button onclick="loginWithGoogle()"
+          class="w-full border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium py-3 rounded-xl transition flex items-center justify-center gap-3">
+          <svg class="w-5 h-5" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          เข้าสู่ระบบด้วย Google
+        </button>
+
+        <p class="text-center text-xs text-gray-400 mt-6">
+          ติดต่อผู้ดูแลระบบเพื่อขอบัญชีผู้ใช้
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==============================
+    // ⚙️ ตั้งค่า Supabase ตรงนี้
+    // ==============================
+    const SUPABASE_URL = 'https://ygdcbkhaqsaiyymxvrph.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnZGNia2hhcXNhaXl5bXh2cnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzY4NTMsImV4cCI6MjA4ODYxMjg1M30.1quRttxAsp4b9471rdUh0zkdx97tfK9pW__0Bh3RWY0'
+    // ==============================
+
+    const { createClient } = supabase
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    // ถ้า Login อยู่แล้ว ไปหน้า dashboard เลย
+    sb.auth.getSession().then(({ data }) => {
+      if (data.session) window.location.href = 'dashboard.html'
+    })
+
+    function showAlert(msg, type = 'error') {
+      const el = document.getElementById('alert')
+      el.className = `mb-4 px-4 py-3 rounded-lg text-sm ${type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`
+      el.textContent = msg
+      el.classList.remove('hidden')
+    }
+
+    function setLoading(on) {
+      document.getElementById('btn-text').textContent = on ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'
+      document.getElementById('btn-spin').classList.toggle('hidden', !on)
+    }
+
+    function togglePassword() {
+      const input = document.getElementById('password')
+      input.type = input.type === 'password' ? 'text' : 'password'
+    }
+
+    async function login() {
+      const email = document.getElementById('email').value.trim()
+      const password = document.getElementById('password').value
+
+      if (!email || !password) {
+        showAlert('กรุณากรอกอีเมลและรหัสผ่าน')
+        return
+      }
+
+      setLoading(true)
+      const { error } = await sb.auth.signInWithPassword({ email, password })
+      setLoading(false)
+
+      if (error) {
+        showAlert('อีเมลหรือรหัสผ่านไม่ถูกต้อง')
+      } else {
+        window.location.href = 'dashboard.html'
+      }
+    }
+
+    async function loginWithGoogle() {
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/dashboard.html'
+        }
+      })
+      if (error) showAlert('เกิดข้อผิดพลาด: ' + error.message)
+    }
+
+    // กด Enter เพื่อ Login ได้เลย
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') login()
+    })
+  </script>
+</body>
+</html>
