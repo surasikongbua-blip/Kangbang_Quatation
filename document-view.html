@@ -23,29 +23,47 @@
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       background: #1a5c38;
       box-shadow: 0 2px 16px rgba(0,0,0,.18);
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 24px; height: 56px;
     }
-    .toolbar-brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; font-size: 17px; }
+    .toolbar-row1 {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px; height: 48px;
+    }
+    .toolbar-row2 {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px 10px;
+      border-top: 1px solid rgba(255,255,255,.1);
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+    }
+    .toolbar-row2::-webkit-scrollbar { display: none; }
+    .toolbar-brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; font-size: 16px; }
     .toolbar-brand a { color: #86efac; font-size: 13px; font-weight: 400; text-decoration: none; }
     .toolbar-brand a:hover { color: #fff; }
-    .toolbar-actions { display: flex; align-items: center; gap: 8px; }
     .btn-tool {
-      display: flex; align-items: center; gap: 6px;
-      padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
-      cursor: pointer; border: none; transition: all .15s;
+      display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+      padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none; transition: all .15s; white-space: nowrap;
+      font-family: 'Sarabun', sans-serif;
     }
-    .btn-outline { background: transparent; border: 1.5px solid rgba(255,255,255,.35); color: #fff; }
-    .btn-outline:hover { background: rgba(255,255,255,.12); }
+    .btn-outline { background: rgba(255,255,255,.12); border: 1.5px solid rgba(255,255,255,.3); color: #fff; }
+    .btn-outline:hover, .btn-outline:active { background: rgba(255,255,255,.2); }
     .btn-primary { background: #fff; color: #1a5c38; }
-    .btn-primary:hover { background: #e8f5ee; }
-    .btn-sign { background: #f59e0b; color: #fff; }
-    .btn-sign:hover { background: #d97706; }
+    .btn-primary:hover, .btn-primary:active { background: #e8f5ee; }
+    .btn-sign { background: #f59e0b; color: #fff; border: none; }
+    .btn-sign:hover, .btn-sign:active { background: #d97706; }
+    /* Desktop: single row */
+    @media (min-width: 640px) {
+      #toolbar { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 56px; }
+      .toolbar-row1 { padding: 0; height: auto; border: none; flex: 1; }
+      .toolbar-row2 { padding: 0; border: none; overflow: visible; }
+    }
 
     /* ── PAGE WRAPPER ── */
     #page-wrap {
-      padding: 80px 24px 60px;
+      padding: 108px 16px 60px;
       display: flex; justify-content: center;
+    }
+    @media (min-width: 640px) {
+      #page-wrap { padding: 76px 24px 60px; }
     }
 
     /* ── DOCUMENT PAPER ── */
@@ -261,19 +279,31 @@
     .btn-apply-sig { padding: 8px 20px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
     .btn-apply-sig:hover { background: var(--accent); }
 
+    /* ── FORCE COLORS EVERYWHERE ── */
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
+
     /* ── PRINT STYLES ── */
     @media print {
-      @page { size: A4; margin: 0; }
-      body { background: #fff !important; }
-      #toolbar, #page-actions-bar { display: none !important; }
-      #page-wrap { padding: 0 !important; }
+      @page { size: A4 portrait; margin: 0; }
+      html, body { background: #fff !important; margin: 0; padding: 0; }
+      #toolbar, #page-actions-bar, .no-print { display: none !important; }
+      #page-wrap { padding: 0 !important; margin: 0 !important; background: #fff !important; }
       #document-paper {
-        width: 100% !important; box-shadow: none !important;
+        width: 210mm !important;
+        min-height: 297mm !important;
+        box-shadow: none !important;
         border-radius: 0 !important;
+        margin: 0 auto !important;
       }
+      .doc-header { background: #1a5c38 !important; -webkit-print-color-adjust: exact !important; }
+      .items-table thead tr { background: #1a5c38 !important; }
+      .total-row.grand { background: #1a5c38 !important; }
       .sig-clear-btn { display: none !important; }
       #sig-modal { display: none !important; }
-      .no-print { display: none !important; }
     }
   </style>
 </head>
@@ -287,25 +317,27 @@
 
 <!-- Toolbar -->
 <div id="toolbar">
-  <div class="toolbar-brand">
-    <a href="dashboard.html">← กลับ</a>
-    <span style="color:rgba(255,255,255,.3)">|</span>
-    <span>Kang Bang</span>
+  <div class="toolbar-row1">
+    <div class="toolbar-brand">
+      <a href="dashboard.html">← กลับ</a>
+      <span style="color:rgba(255,255,255,.3)">|</span>
+      <span>Kang Bang</span>
+    </div>
   </div>
-  <div class="toolbar-actions">
-    <button class="btn-tool btn-sign no-print" onclick="openSigModal()">
+  <div class="toolbar-row2 no-print">
+    <button class="btn-tool btn-sign" onclick="openSigModal()">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
       เซ็นลายเซ็น
     </button>
-    <button class="btn-tool btn-outline no-print" onclick="saveAsImage()">
+    <button class="btn-tool btn-outline" onclick="saveAsImage()">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
       บันทึกรูป
     </button>
-    <button class="btn-tool btn-primary no-print" onclick="window.print()">
+    <button class="btn-tool btn-primary" onclick="window.print()">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-      พิมพ์ / บันทึก PDF
+      พิมพ์ / PDF
     </button>
-    <button class="btn-tool btn-outline no-print" onclick="editDoc()" style="border-color:rgba(255,255,255,.3);">
+    <button class="btn-tool btn-outline" onclick="editDoc()">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       แก้ไข
     </button>
@@ -709,21 +741,59 @@
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
   }
 
-  /* ── SAVE AS IMAGE ── */
+  /* ── SAVE AS IMAGE — A4 crisp render ── */
   async function saveAsImage() {
     const paper = document.getElementById('document-paper')
-    // Temporarily hide no-print elements
-    document.querySelectorAll('.no-print').forEach(el => el.style.visibility = 'hidden')
+    const btn = event.currentTarget
+    const origText = btn.innerHTML
+    btn.innerHTML = '<svg class="animate-spin" width="14" height="14" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-dashoffset="12"/></svg> กำลังบันทึก...'
+    btn.disabled = true
+
+    // Hide toolbar & no-print elements
+    const toolbar = document.getElementById('toolbar')
+    const noprints = document.querySelectorAll('.no-print')
+    toolbar.style.display = 'none'
+    noprints.forEach(el => el.style.visibility = 'hidden')
+
+    // Set paper to exact A4 width for render
+    const origStyle = paper.style.cssText
+    paper.style.width = '794px'
+    paper.style.boxShadow = 'none'
+
     try {
-      const canvas = await html2canvas(paper, { scale: 2, useCORS: true, backgroundColor: '#fff' })
+      const canvas = await html2canvas(paper, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        windowWidth: 794,
+        onclone: (clonedDoc) => {
+          // Force all background colors in clone
+          clonedDoc.querySelectorAll('.doc-header').forEach(el => {
+            el.style.backgroundColor = '#1a5c38'
+          })
+          clonedDoc.querySelectorAll('.items-table thead tr').forEach(el => {
+            el.style.backgroundColor = '#1a5c38'
+          })
+          clonedDoc.querySelectorAll('.total-row.grand').forEach(el => {
+            el.style.backgroundColor = '#1a5c38'
+          })
+        }
+      })
       const link = document.createElement('a')
       link.download = `${docData?.doc_number || 'document'}.png`
-      link.href = canvas.toDataURL('image/png')
+      link.href = canvas.toDataURL('image/png', 1.0)
       link.click()
     } catch(e) {
       alert('ไม่สามารถบันทึกรูปได้: ' + e.message)
     }
-    document.querySelectorAll('.no-print').forEach(el => el.style.visibility = '')
+
+    paper.style.cssText = origStyle
+    toolbar.style.display = ''
+    noprints.forEach(el => el.style.visibility = '')
+    btn.innerHTML = origText
+    btn.disabled = false
   }
 
   // Click outside modal to close
