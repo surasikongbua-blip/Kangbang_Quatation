@@ -250,6 +250,8 @@
       const { data: { session } } = await sb.auth.getSession()
       if (!session) { window.location.href = 'index.html'; return }
 
+      setupDropdownListener() // ตั้ง event delegation สำหรับ autocomplete
+
       document.getElementById('issue-date').value = new Date().toISOString().split('T')[0]
       const d = new Date(); d.setDate(d.getDate() + 30)
       document.getElementById('valid-until').value = d.toISOString().split('T')[0]
@@ -533,15 +535,39 @@
     }
 
     // ==================== AUTOCOMPLETE ====================
+    // ใช้ event delegation บน dropdown แทน inline onmousedown
+    // เพื่อหลีกเลี่ยงปัญหา closure และ UUID ใน HTML attribute
+    function setupDropdownListener() {
+      const dd = document.getElementById('autocomplete-dropdown')
+      // mousedown สำหรับ desktop (e.preventDefault ป้องกัน input blur ก่อนเลือก)
+      dd.addEventListener('mousedown', function(e) {
+        const item = e.target.closest('[data-product-id]')
+        if (!item) return
+        e.preventDefault()
+        selectProduct(parseInt(item.dataset.rowIdx), item.dataset.productId)
+      })
+      // touchend สำหรับ mobile
+      dd.addEventListener('touchend', function(e) {
+        const item = e.target.closest('[data-product-id]')
+        if (!item) return
+        e.preventDefault()
+        selectProduct(parseInt(item.dataset.rowIdx), item.dataset.productId)
+        closeAutocomplete()
+      })
+    }
+
     function onCodeInput(idx, input) {
-      const q = input.value.toLowerCase()
+      const q = input.value.toLowerCase().trim()
       currentAutocompleteRow = idx
+
+      const dd = document.getElementById('autocomplete-dropdown')
+      if (!q) { dd.classList.add('hidden'); return }
+
       const matches = allProducts.filter(p =>
         p.code.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)
       ).slice(0, 8)
 
-      const dd = document.getElementById('autocomplete-dropdown')
-      if (!matches.length || !q) { dd.classList.add('hidden'); return }
+      if (!matches.length) { dd.classList.add('hidden'); return }
 
       const rect = input.getBoundingClientRect()
       const spaceBelow = window.innerHeight - rect.bottom
@@ -555,16 +581,17 @@
         dd.style.top = `${rect.bottom + window.scrollY + 4}px`
       }
       dd.classList.remove('hidden')
+      // ใช้ data-product-id และ data-row-idx แทน inline function call
       dd.innerHTML = matches.map(p => `
         <div class="autocomplete-item px-4 py-2.5 cursor-pointer border-b border-gray-50 last:border-0"
-          onmousedown="selectProduct(${currentAutocompleteRow}, '${p.id}')">
-          <div class="flex justify-between items-center">
+          data-product-id="${escHtml(p.id)}" data-row-idx="${idx}">
+          <div class="flex justify-between items-center pointer-events-none">
             <span class="font-mono text-xs text-green-700 font-semibold">${escHtml(p.code)}</span>
             <span class="text-xs text-gray-400">${escHtml(p.unit)}</span>
           </div>
-          <div class="text-sm text-gray-800 font-medium">${escHtml(p.name)}</div>
-          ${p.description ? `<div class="text-xs text-gray-400">${escHtml(p.description)}</div>` : ''}
-          <div class="text-xs text-green-600 font-semibold mt-0.5">฿${Number(p.price).toLocaleString('th-TH', {minimumFractionDigits:2})}</div>
+          <div class="text-sm text-gray-800 font-medium pointer-events-none">${escHtml(p.name)}</div>
+          ${p.description ? `<div class="text-xs text-gray-400 pointer-events-none">${escHtml(p.description)}</div>` : ''}
+          <div class="text-xs text-green-600 font-semibold mt-0.5 pointer-events-none">฿${Number(p.price).toLocaleString('th-TH', {minimumFractionDigits:2})}</div>
         </div>`).join('')
     }
 
@@ -608,7 +635,7 @@
     }
 
     function closeAutocomplete() {
-      setTimeout(() => document.getElementById('autocomplete-dropdown').classList.add('hidden'), 150)
+      document.getElementById('autocomplete-dropdown').classList.add('hidden')
     }
 
     document.addEventListener('click', e => {
