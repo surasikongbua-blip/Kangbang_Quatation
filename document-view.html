@@ -60,15 +60,15 @@
     /* ── DOC HEADER BAND ── */
     .doc-header {
       background: var(--green);
-      padding: 32px 40px 28px;
+      padding: 18px 40px 16px;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
       gap: 20px;
     }
-    .doc-header-left { display: flex; align-items: center; gap: 18px; }
+    .doc-header-left { display: flex; align-items: center; gap: 14px; }
     .logo-box {
-      width: 80px; height: 68px;
+      width: 64px; height: 54px;
       background: rgba(255,255,255,.12);
       border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
@@ -76,56 +76,53 @@
     }
     .logo-box img { width: 100%; height: 100%; object-fit: contain; }
     .company-info { color: #fff; }
-    .company-name { font-size: 17px; font-weight: 700; line-height: 1.3; }
-    .company-sub { font-size: 11.5px; color: rgba(255,255,255,.72); margin-top: 3px; line-height: 1.6; }
+    .company-name { font-size: 15px; font-weight: 700; line-height: 1.3; }
+    .company-sub { font-size: 10.5px; color: rgba(255,255,255,.72); margin-top: 2px; line-height: 1.55; }
 
     .doc-header-right { text-align: right; }
     .doc-type-badge {
-      display: inline-block;
-      background: rgba(255,255,255,.18);
-      border: 1.5px solid rgba(255,255,255,.3);
-      color: #fff; font-size: 13px; font-weight: 700;
-      padding: 4px 14px; border-radius: 20px;
-      text-transform: uppercase; letter-spacing: .05em;
-      margin-bottom: 8px;
+      display: block;
+      color: #fff; font-size: 20px; font-weight: 800;
+      letter-spacing: .01em; line-height: 1.2;
+      margin-bottom: 4px;
     }
-    .doc-number-display { color: #fff; font-size: 22px; font-weight: 800; letter-spacing: .01em; }
-    .doc-date-display { color: rgba(255,255,255,.7); font-size: 12px; margin-top: 4px; }
+    .doc-number-display { color: rgba(255,255,255,.75); font-size: 14px; font-weight: 600; letter-spacing: .02em; }
+    .doc-date-display { color: rgba(255,255,255,.6); font-size: 11px; margin-top: 2px; }
 
     /* ── DOC BODY ── */
-    .doc-body { padding: 32px 40px; }
+    .doc-body { padding: 20px 40px 28px; }
 
     /* ── INFO GRID ── */
     .info-section {
       display: grid; grid-template-columns: 1fr 1fr;
-      gap: 0; margin-bottom: 28px;
-      border: 1px solid #e5ece9; border-radius: 8px; overflow: hidden;
+      gap: 0; margin-bottom: 16px;
+      border: 1px solid #e5ece9; border-radius: 6px; overflow: hidden;
     }
     .info-cell {
-      padding: 14px 18px;
+      padding: 7px 14px;
       border-right: 1px solid #e5ece9;
       border-bottom: 1px solid #e5ece9;
     }
     .info-cell:nth-child(2), .info-cell:nth-child(4) { border-right: none; }
     .info-cell:last-child, .info-cell:nth-last-child(2) { border-bottom: none; }
-    .info-label { font-size: 10.5px; font-weight: 700; color: #6b8c7a; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
-    .info-value { font-size: 13.5px; color: #1a2e24; font-weight: 500; line-height: 1.5; }
-    .info-value.mono { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; }
+    .info-label { font-size: 9.5px; font-weight: 700; color: #6b8c7a; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 1px; }
+    .info-value { font-size: 12.5px; color: #1a2e24; font-weight: 500; line-height: 1.4; }
+    .info-value.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; }
     .info-section-header {
       grid-column: 1 / -1;
       background: var(--green-light);
-      padding: 8px 18px;
-      font-size: 11px; font-weight: 700; color: var(--green);
+      padding: 5px 14px;
+      font-size: 10px; font-weight: 700; color: var(--green);
       text-transform: uppercase; letter-spacing: .07em;
       border-bottom: 1px solid #d1e8da;
     }
 
     /* ── ITEMS TABLE ── */
-    .items-table { width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: 13px; }
+    .items-table { width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: 12px; }
     .items-table thead tr { background: var(--green); }
     .items-table thead th {
-      color: #fff; font-weight: 600; font-size: 11.5px;
-      padding: 10px 12px; text-align: left;
+      color: #fff; font-weight: 600; font-size: 10.5px;
+      padding: 8px 10px; text-align: left;
       letter-spacing: .04em; text-transform: uppercase;
     }
     .items-table thead th:last-child,
@@ -136,14 +133,14 @@
     .items-table tbody tr { border-bottom: 1px solid #edf2ef; }
     .items-table tbody tr:nth-child(even) { background: #f9fcfa; }
     .items-table tbody tr:hover { background: #f0faf4; }
-    .items-table tbody td { padding: 10px 12px; color: #1f3a2c; vertical-align: top; }
+    .items-table tbody td { padding: 6px 10px; color: #1f3a2c; vertical-align: middle; }
     .items-table tbody td:last-child,
     .items-table tbody td:nth-child(4),
     .items-table tbody td:nth-child(5) { text-align: right; }
     .items-table tbody td:nth-child(3) { text-align: center; }
-    .item-code { font-size: 11px; color: #3a7a56; font-weight: 600; font-family: monospace; }
-    .item-name { font-weight: 600; color: #111; line-height: 1.4; }
-    .item-desc { font-size: 11.5px; color: #7a9488; margin-top: 2px; }
+    .item-code { font-size: 10px; color: #3a7a56; font-weight: 600; font-family: monospace; }
+    .item-name { font-weight: 600; color: #111; line-height: 1.3; font-size: 12px; }
+    .item-desc { font-size: 10.5px; color: #7a9488; margin-top: 1px; }
     .item-num { font-variant-numeric: tabular-nums; }
 
     /* ── TOTALS ── */
@@ -152,53 +149,53 @@
       display: flex; justify-content: flex-end;
     }
     .totals-box {
-      width: 280px;
+      width: 260px;
       border: 1px solid #e5ece9;
       border-top: none;
-      border-radius: 0 0 8px 8px;
+      border-radius: 0 0 6px 6px;
       overflow: hidden;
     }
-    .total-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 16px; border-bottom: 1px solid #edf2ef; }
+    .total-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 14px; border-bottom: 1px solid #edf2ef; }
     .total-row:last-child { border-bottom: none; }
-    .total-label { font-size: 12.5px; color: #5a7a68; }
-    .total-value { font-size: 13px; font-weight: 500; color: #1a2e24; font-variant-numeric: tabular-nums; }
+    .total-label { font-size: 11.5px; color: #5a7a68; }
+    .total-value { font-size: 12px; font-weight: 500; color: #1a2e24; font-variant-numeric: tabular-nums; }
     .total-row.grand { background: var(--green); }
-    .total-row.grand .total-label { color: rgba(255,255,255,.8); font-weight: 600; font-size: 13px; }
-    .total-row.grand .total-value { color: #fff; font-size: 16px; font-weight: 800; }
+    .total-row.grand .total-label { color: rgba(255,255,255,.8); font-weight: 600; font-size: 12px; }
+    .total-row.grand .total-value { color: #fff; font-size: 15px; font-weight: 800; }
 
     /* ── NOTES ── */
     .notes-section {
-      margin-top: 28px;
+      margin-top: 14px;
       border-left: 3px solid var(--accent);
-      padding: 10px 16px;
+      padding: 7px 14px;
       background: var(--green-light);
-      border-radius: 0 6px 6px 0;
+      border-radius: 0 5px 5px 0;
     }
-    .notes-label { font-size: 11px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
-    .notes-text { font-size: 13px; color: #2a4a38; line-height: 1.6; }
+    .notes-label { font-size: 10px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+    .notes-text { font-size: 12px; color: #2a4a38; line-height: 1.5; }
 
     /* ── SIGNATURE AREA ── */
     .signature-section {
-      margin-top: 36px;
+      margin-top: 20px;
       display: grid; grid-template-columns: 1fr 1fr;
-      gap: 24px;
+      gap: 16px;
     }
     .sig-box {
       border: 1.5px dashed #c8ddd3;
-      border-radius: 10px;
-      padding: 16px;
+      border-radius: 8px;
+      padding: 10px 14px;
       text-align: center;
-      min-height: 130px;
+      min-height: 110px;
       display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-      gap: 8px; position: relative; background: #fafcfb;
+      gap: 5px; position: relative; background: #fafcfb;
     }
     .sig-box canvas {
       border-bottom: 1.5px solid #1a5c38;
       cursor: crosshair; display: block;
     }
-    .sig-label { font-size: 11px; font-weight: 700; color: #6b8c7a; text-transform: uppercase; letter-spacing: .06em; }
-    .sig-name { font-size: 13px; color: #1a2e24; font-weight: 600; }
-    .sig-date { font-size: 11.5px; color: #8aaa98; }
+    .sig-label { font-size: 10px; font-weight: 700; color: #6b8c7a; text-transform: uppercase; letter-spacing: .06em; }
+    .sig-name { font-size: 12px; color: #1a2e24; font-weight: 600; }
+    .sig-date { font-size: 10.5px; color: #8aaa98; }
     .sig-clear-btn {
       position: absolute; top: 8px; right: 8px;
       font-size: 10px; color: #a0b8ae; cursor: pointer; background: none; border: none;
@@ -208,12 +205,12 @@
 
     /* ── FOOTER ── */
     .doc-footer {
-      margin-top: 32px; padding-top: 18px;
+      margin-top: 16px; padding-top: 12px;
       border-top: 1px solid #e5ece9;
       display: flex; justify-content: space-between; align-items: center;
     }
-    .footer-left { font-size: 11px; color: #8aaa98; line-height: 1.7; }
-    .footer-right { text-align: right; font-size: 11px; color: #a0b8ae; }
+    .footer-left { font-size: 10px; color: #8aaa98; line-height: 1.6; }
+    .footer-right { text-align: right; font-size: 10px; color: #a0b8ae; }
 
     /* ── STATUS BADGE ── */
     .status-badge {
@@ -355,7 +352,6 @@
         <div class="doc-type-badge" id="doc-type-badge">—</div>
         <div class="doc-number-display" id="doc-number-display">—</div>
         <div class="doc-date-display" id="doc-date-display">—</div>
-        <div style="margin-top:10px;" id="status-wrap"></div>
       </div>
     </div>
 
@@ -392,8 +388,8 @@
       </div>
 
       <!-- Items Table -->
-      <div style="border:1px solid #e5ece9;border-radius:8px;overflow:hidden;margin-bottom:0;">
-        <div style="background:#f0faf4;padding:8px 18px;font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid #d1e8da;">
+      <div style="border:1px solid #e5ece9;border-radius:6px;overflow:hidden;margin-bottom:0;">
+        <div style="background:#f0faf4;padding:5px 14px;font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid #d1e8da;">
           รายการสินค้า / Items
         </div>
         <table class="items-table">
@@ -445,7 +441,7 @@
       <div class="signature-section">
         <!-- Seller signature -->
         <div class="sig-box" id="sig-seller-box">
-          <canvas id="sig-canvas-seller" width="220" height="70" style="width:220px;height:70px;"></canvas>
+          <canvas id="sig-canvas-seller" width="200" height="55" style="width:200px;height:55px;"></canvas>
           <button class="sig-clear-btn no-print" onclick="clearSig('seller')" title="ล้างลายเซ็น">✕ ล้าง</button>
           <div class="sig-label">ผู้เสนอราคา / Authorized Signature</div>
           <div class="sig-name" id="sig-seller-name">—</div>
@@ -453,7 +449,7 @@
         </div>
         <!-- Customer signature -->
         <div class="sig-box" id="sig-buyer-box">
-          <canvas id="sig-canvas-buyer" width="220" height="70" style="width:220px;height:70px;"></canvas>
+          <canvas id="sig-canvas-buyer" width="200" height="55" style="width:200px;height:55px;"></canvas>
           <div class="sig-label">ผู้รับเอกสาร / Received By</div>
           <div class="sig-name" id="sig-buyer-name" style="color:#8aaa98;">ลูกค้า</div>
           <div class="sig-date">วันที่: ________</div>
@@ -553,14 +549,6 @@
     document.getElementById('doc-type-badge').textContent = DOC_TYPE_LABEL[doc.doc_type] || doc.doc_type
     document.getElementById('doc-number-display').textContent = doc.doc_number
     document.getElementById('doc-date-display').textContent = 'วันที่: ' + fmtDate(doc.issue_date)
-
-    // Status
-    const sc = STATUS_CONFIG[doc.status] || { label: doc.status, bg: '#f3f4f6', color: '#6b7280', dot: '#9ca3af' }
-    document.getElementById('status-wrap').innerHTML = `
-      <span class="status-badge" style="background:${sc.bg};color:${sc.color};">
-        <span class="status-dot" style="background:${sc.dot};"></span>
-        ${sc.label}
-      </span>`
 
     // Customer info
     document.getElementById('info-customer-name').textContent    = doc.customer_name || '—'
