@@ -288,22 +288,27 @@
 
     /* ── PRINT STYLES ── */
     @media print {
-      @page { size: A4 portrait; margin: 0; }
-      html, body { background: #fff !important; margin: 0; padding: 0; }
+      @page { size: A4 portrait; margin: 10mm 12mm; }
+      html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
       #toolbar, #page-actions-bar, .no-print { display: none !important; }
-      #page-wrap { padding: 0 !important; margin: 0 !important; background: #fff !important; }
+      #page-wrap { 
+        padding: 0 !important; margin: 0 !important; 
+        background: #fff !important;
+        display: block !important;
+      }
       #document-paper {
-        width: 210mm !important;
-        min-height: 297mm !important;
+        width: 100% !important;
+        max-width: 100% !important;
         box-shadow: none !important;
         border-radius: 0 !important;
-        margin: 0 auto !important;
+        margin: 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
       }
-      .doc-header { background: #1a5c38 !important; -webkit-print-color-adjust: exact !important; }
+      .doc-header { background: #1a5c38 !important; }
       .items-table thead tr { background: #1a5c38 !important; }
       .total-row.grand { background: #1a5c38 !important; }
-      .sig-clear-btn { display: none !important; }
-      #sig-modal { display: none !important; }
+      .sig-clear-btn, #sig-modal { display: none !important; }
     }
   </style>
 </head>
@@ -567,11 +572,9 @@
 
   /* ── RENDER ── */
   function renderDocument(doc, items, profile) {
-    // Logo
-    if (profile.logo_url) {
-      const logoWrap = document.getElementById('logo-wrap')
-      logoWrap.innerHTML = `<img src="${profile.logo_url}" alt="logo" onerror="this.parentElement.innerHTML='<span style=font-size:28px>🏢</span>'"/>`
-    }
+    // Logo — hardcoded company logo
+    const logoWrap = document.getElementById('logo-wrap')
+    logoWrap.innerHTML = `<img src="https://ygdcbkhaqsaiyymxvrph.supabase.co/storage/v1/object/public/company-assets/logos/46adc746-1a88-4361-a833-9e2a73a111ad.png" alt="logo" crossorigin="anonymous" onerror="this.parentElement.innerHTML='<span style=font-size:28px>🏢</span>'"/>`
 
     // Contact in header
     const contactParts = []
