@@ -1,542 +1,343 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ดูเอกสาร — Kang Bang</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <style>
-    :root {
-      --g-dark:  #0d3320;
-      --g-mid:   #166534;
-      --g-main:  #16a34a;
-      --g-light: #dcfce7;
-      --g-pale:  #f0fdf4;
-      --gold:    #c49a3c;
-      --txt-1:   #0f172a;
-      --txt-2:   #374151;
-      --txt-3:   #6b7280;
-      --txt-4:   #9ca3af;
-      --border:  #e5e7eb;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'IBM Plex Sans Thai', 'Sarabun', sans-serif;
-      background: #eaede8;
-      min-height: 100vh;
-      padding-bottom: 80px;
-    }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ดูเอกสาร — Kang Bang</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@600;700;800;900&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════
+   KANG BANG — DOCUMENT VIEWER
+   Design: Corporate Prestige
+   Dark header band · Gold rule · Clean white paper
+═══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --forest:  #0c2d17;
+  --green:   #155e2f;
+  --mid:     #1a7a3c;
+  --leaf:    #2ea84f;
+  --pale:    #f0fdf4;
+  --mint:    #dcfce7;
+  --gold:    #b8860b;
+  --gold-lt: #f5e6a3;
+  --ink:     #111827;
+  --body:    #374151;
+  --muted:   #6b7280;
+  --faint:   #9ca3af;
+  --rule:    #e5e7eb;
+  --bg:      #dde3d8;
+}
+body {
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  padding-bottom: 80px;
+  -webkit-font-smoothing: antialiased;
+}
 
-    /* ============ PRINT ============ */
-    @media print {
-      body { background: white !important; padding: 0 !important; }
-      .no-print { display: none !important; }
-      .doc-paper {
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-      }
-      .paper-wrap { padding: 0 !important; }
-      @page { margin: 10mm 12mm; size: A4 portrait; }
-    }
+/* ── PRINT ───────────────────────────────────── */
+@media print {
+  body { background: #fff !important; padding: 0 !important; }
+  .no-print { display: none !important; }
+  .doc-sheet { box-shadow: none !important; border-radius: 0 !important; width: 100% !important; }
+  .sheet-wrap { padding: 0 !important; }
+  @page { margin: 8mm 10mm; size: A4 portrait; }
+}
 
-    /* ============ PAPER ============ */
-    .paper-wrap {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 28px 16px 40px;
-    }
+/* ── TOPBAR ──────────────────────────────────── */
+.topbar {
+  background: var(--forest);
+  padding: 0 24px; height: 52px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+.topbar-l { display: flex; align-items: center; gap: 12px; }
+.topbar-brand { font-size: 14px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 7px; }
+.tb-div { width: 1px; height: 18px; background: rgba(255,255,255,0.18); }
+.topbar-doc { font-size: 12px; color: rgba(255,255,255,0.55); }
+.topbar-r { display: flex; align-items: center; gap: 10px; }
+.tb-pill { font-size: 10.5px; font-weight: 700; padding: 3px 12px; border-radius: 100px; letter-spacing: 0.3px; }
+.tb-btn {
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.85); font-size: 12px; padding: 5px 14px;
+  border-radius: 5px; cursor: pointer; font-family: inherit; transition: background 0.15s;
+}
+.tb-btn:hover { background: rgba(255,255,255,0.18); }
 
-    .doc-paper {
-      background: white;
-      border-radius: 3px;
-      position: relative;
-      box-shadow:
-        0 1px 3px rgba(0,0,0,0.04),
-        0 8px 32px rgba(0,0,0,0.08),
-        0 32px 80px rgba(0,0,0,0.06);
-      overflow: hidden;
-    }
+/* ── SHEET WRAPPER ───────────────────────────── */
+.sheet-wrap { max-width: 880px; margin: 0 auto; padding: 28px 16px 20px; }
 
-    /* Left accent rule */
-    .doc-paper::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 5px;
-      background: linear-gradient(180deg, var(--g-dark) 0%, var(--g-main) 55%, #4ade80 100%);
-      z-index: 2;
-    }
+.doc-sheet {
+  background: #fff; border-radius: 2px; overflow: hidden;
+  position: relative;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.07), 0 24px 64px rgba(0,0,0,0.09);
+}
 
-    /* ============ HEADER ============ */
-    .doc-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      padding: 36px 44px 28px 52px;
-      background: linear-gradient(160deg, #fff 65%, #f7fdf8 100%);
-      border-bottom: 1px solid #e8f5e9;
-      gap: 16px;
-    }
+/* ── HEADER BAND ─────────────────────────────── */
+.doc-header {
+  background: var(--forest);
+  padding: 28px 40px 26px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 20px; position: relative; overflow: hidden;
+}
+.doc-header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(-55deg,transparent,transparent 40px,rgba(255,255,255,0.018) 40px,rgba(255,255,255,0.018) 41px);
+}
+.doc-header::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-lt) 50%, var(--gold) 100%);
+}
 
-    .company-block { display: flex; align-items: flex-start; gap: 14px; }
+.co-block { display: flex; align-items: center; gap: 16px; position: relative; z-index: 1; }
+.logo-box {
+  width: 70px; height: 58px; border-radius: 6px; overflow: hidden; flex-shrink: 0;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
+  display: flex; align-items: center; justify-content: center;
+}
+.logo-box img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.logo-fb { font-size: 26px; }
+.co-name { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: 0.2px; margin-bottom: 5px; line-height: 1.3; }
+.co-detail { font-size: 10.5px; color: rgba(255,255,255,0.5); line-height: 1.85; }
 
-    /* Logo area — click to upload */
-    .logo-area {
-      width: 80px; height: 66px;
-      flex-shrink: 0;
-      cursor: pointer;
-      position: relative;
-      border-radius: 8px;
-      overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
-      background: var(--g-dark);
-      transition: box-shadow 0.2s;
-    }
-    .logo-area:hover .logo-hover-overlay { opacity: 1; }
-    .logo-area img { width: 100%; height: 100%; object-fit: contain; display: none; }
-    .logo-fallback {
-      font-size: 28px; color: white;
-      display: flex; align-items: center; justify-content: center;
-      width: 100%; height: 100%;
-    }
-    .logo-hover-overlay {
-      position: absolute; inset: 0;
-      background: rgba(0,0,0,0.55);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 3px;
-      opacity: 0;
-      transition: opacity 0.2s;
-      color: white;
-      font-size: 18px;
-    }
-    .logo-hover-overlay span { font-size: 9px; font-weight: 700; letter-spacing: 1px; }
+.doc-title-r { text-align: right; position: relative; z-index: 1; flex-shrink: 0; }
+.dt-en { font-size: 9px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: var(--gold-lt); margin-bottom: 4px; opacity: 0.88; }
+.dt-th {
+  font-family: 'Noto Serif Thai', serif;
+  font-size: 28px; font-weight: 800; color: #fff;
+  line-height: 1; margin-bottom: 14px; letter-spacing: -0.3px;
+}
+.doc-meta td { padding: 2.5px 0; font-size: 12px; }
+.dm-l { color: rgba(255,255,255,0.42); padding-right: 12px; white-space: nowrap; }
+.dm-v { color: #fff; font-weight: 600; text-align: right; }
 
-    .company-text {}
-    .co-name {
-      font-size: 16px; font-weight: 700;
-      color: var(--g-dark);
-      letter-spacing: -0.2px;
-      margin-bottom: 5px;
-      line-height: 1.2;
-    }
-    .co-detail {
-      font-size: 11px;
-      color: var(--txt-3);
-      line-height: 1.75;
-    }
+/* ── CUSTOMER BAND ───────────────────────────── */
+.cust-band {
+  background: var(--pale); padding: 16px 40px;
+  border-bottom: 1px solid var(--mint);
+}
+.cust-to { font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--mid); margin-bottom: 4px; }
+.cust-name { font-family: 'Noto Serif Thai', serif; font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+.cust-row { display: flex; flex-wrap: wrap; gap: 16px; }
+.cust-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--body); }
+.cust-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--leaf); flex-shrink: 0; }
+.cust-tax { font-size: 11px; color: var(--faint); margin-top: 3px; }
 
-    /* Doc title side */
-    .doc-title-block { text-align: right; flex-shrink: 0; }
-    .doc-en-label {
-      display: inline-block;
-      background: var(--g-dark);
-      color: rgba(255,255,255,0.85);
-      font-size: 9.5px; font-weight: 700;
-      letter-spacing: 3.5px;
-      padding: 4px 12px;
-      border-radius: 2px;
-      margin-bottom: 6px;
-      text-transform: uppercase;
-    }
-    .doc-th-title {
-      font-size: 32px; font-weight: 800;
-      color: var(--g-main);
-      line-height: 1;
-      letter-spacing: -0.5px;
-      margin-bottom: 16px;
-    }
-    .doc-meta { font-size: 12px; }
-    .doc-meta tr td { padding: 2.5px 0; vertical-align: middle; }
-    .doc-meta .lbl { color: var(--txt-4); padding-right: 14px; white-space: nowrap; }
-    .doc-meta .val { font-weight: 700; color: var(--txt-1); text-align: right; font-size: 12.5px; }
+/* ── ITEMS TABLE ─────────────────────────────── */
+.items-wrap { padding: 0 40px; margin-top: 22px; }
+.inv-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.inv-table thead tr { border-top: 2px solid var(--forest); border-bottom: 2px solid var(--forest); }
+.inv-table thead th { padding: 9px 10px; font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--forest); }
+.inv-table tbody tr { border-bottom: 1px solid #f3f4f6; }
+.inv-table tbody tr:last-child { border-bottom: 2px solid var(--forest); }
+.inv-table tbody tr:hover td { background: #fafffe; }
+.inv-table td { padding: 11px 10px; color: var(--body); vertical-align: top; }
+.c-no    { color: var(--faint); font-size: 11px; text-align: center; }
+.c-code  { font-family: 'IBM Plex Mono', monospace; color: var(--mid); font-weight: 600; font-size: 12px; }
+.c-name  { font-weight: 600; color: var(--ink); }
+.c-desc  { font-size: 10.5px; color: var(--faint); margin-top: 2px; }
+.c-unit  { text-align: center; }
+.c-qty   { text-align: center; font-weight: 600; }
+.c-price { text-align: right; }
+.c-total { text-align: right; font-weight: 700; color: var(--ink); }
 
-    /* ============ DIVIDER ============ */
-    .h-rule {
-      height: 1px;
-      background: linear-gradient(90deg, transparent 0%, #c8ecd0 20%, #c8ecd0 80%, transparent 100%);
-      margin: 0 52px;
-    }
+/* ── BOTTOM: NOTES + TOTALS ──────────────────── */
+.doc-bottom {
+  padding: 20px 40px 0; margin-top: 4px;
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 24px;
+}
+.notes-area { flex: 1; max-width: 360px; }
+.notes-lbl { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--faint); margin-bottom: 6px; }
+.notes-body { font-size: 12px; color: var(--body); line-height: 1.6; background: var(--pale); border-left: 3px solid var(--leaf); padding: 8px 12px; border-radius: 0 4px 4px 0; }
+.ship-note { font-size: 10.5px; color: var(--faint); font-style: italic; margin-top: 8px; }
 
-    /* ============ CUSTOMER ============ */
-    .customer-section {
-      padding: 20px 44px 20px 52px;
-      background: #fcfffe;
-      display: flex; align-items: flex-start; gap: 32px;
-    }
-    .cust-to-label {
-      font-size: 9.5px; font-weight: 700;
-      letter-spacing: 2.5px; text-transform: uppercase;
-      color: var(--g-main);
-      margin-bottom: 5px;
-    }
-    .cust-name {
-      font-size: 20px; font-weight: 700;
-      color: var(--txt-1);
-      margin-bottom: 7px;
-    }
-    .cust-details { display: flex; flex-wrap: wrap; gap: 14px; }
-    .cust-detail {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 12px; color: var(--txt-2);
-    }
-    .cust-icon {
-      width: 20px; height: 20px; border-radius: 50%;
-      background: var(--g-light);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 10px; flex-shrink: 0;
-    }
+.totals-area { min-width: 270px; }
+.tot-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12.5px; color: var(--body); border-bottom: 1px dashed #e9ecef; }
+.tot-row:last-of-type { border-bottom: none; }
+.tot-v { font-weight: 600; color: var(--ink); }
+.grand-box {
+  margin-top: 10px; background: var(--forest);
+  border-radius: 4px; padding: 14px 18px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.grand-lbl { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.6); letter-spacing: 0.5px; }
+.grand-amt { font-family: 'Noto Serif Thai', serif; font-size: 22px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
 
-    /* ============ ITEMS ============ */
-    .items-section { padding: 0 44px 0 52px; margin-top: 24px; }
+/* ── SIGNATURE ───────────────────────────────── */
+.sig-area { padding: 28px 40px 16px; display: flex; justify-content: flex-end; }
+.sig-block { text-align: center; width: 240px; }
 
-    .items-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-    .items-table thead th {
-      background: var(--g-dark);
-      color: rgba(255,255,255,0.88);
-      font-size: 11px; font-weight: 600;
-      letter-spacing: 0.3px;
-      padding: 11px 13px;
-    }
-    .items-table thead th:first-child { border-radius: 4px 0 0 0; }
-    .items-table thead th:last-child  { border-radius: 0 4px 0 0; }
-    .items-table tbody td {
-      padding: 11px 13px;
-      font-size: 13px;
-      color: var(--txt-2);
-      border-bottom: 1px solid #f0f7f0;
-    }
-    .items-table tbody tr:last-child td { border-bottom: none; }
-    .items-table tbody tr:hover td { background: #fafffe; }
+/*
+ * KEY FIX: The wrapper has explicit px size.
+ * The canvas inside is positioned absolute and sized by JS.
+ * Never use CSS width/height on canvas — that only scales visually
+ * but does NOT set the drawing buffer size → blank lines bug.
+ */
+.sig-pad {
+  width: 240px; height: 90px; position: relative;
+  margin: 0 auto; border-bottom: 1.5px solid #9ca3af;
+  cursor: crosshair; background: #fff;
+  -webkit-user-select: none; user-select: none; touch-action: none;
+}
+#sig-canvas {
+  position: absolute; top: 0; left: 0;
+  cursor: crosshair; touch-action: none;
+  /* width/height set by JS only — not CSS */
+}
+.sig-hint-txt {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--faint); pointer-events: none; gap: 4px;
+}
+.sig-saved { width: 240px; height: 90px; object-fit: contain; display: block; margin: 0 auto; border-bottom: 1.5px solid #9ca3af; }
+.sig-ctls { display: flex; justify-content: center; gap: 6px; margin-top: 6px; }
+.sig-btn { font-size: 10.5px; font-weight: 600; padding: 3px 12px; border-radius: 3px; border: none; cursor: pointer; font-family: inherit; transition: all 0.12s; }
+.sig-clear { background: #fce8e8; color: #991b1b; }
+.sig-clear:hover { background: #fcd4d4; }
+.sig-ok { background: var(--mint); color: var(--green); }
+.sig-ok:hover { background: #bbf7d0; }
+.sig-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--mid); font-weight: 700; margin-top: 5px; }
+.sig-name-txt { font-size: 12.5px; font-weight: 600; color: var(--ink); margin-top: 7px; }
+.sig-co-txt { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
 
-    /* ============ TOTALS ============ */
-    .bottom-section {
-      padding: 20px 44px 0 52px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 24px;
-      margin-top: 20px;
-    }
+/* ── FOOTER ──────────────────────────────────── */
+.doc-footer { margin-top: 20px; padding: 10px 40px; background: var(--pale); border-top: 1px solid var(--mint); display: flex; justify-content: space-between; align-items: center; }
+.ft-type { font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--mid); }
+.ft-info { font-size: 10px; color: var(--faint); }
 
-    .notes-col { flex: 1; max-width: 340px; }
-    .notes-lbl { font-size: 9.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--txt-4); margin-bottom: 6px; }
-    .notes-body { font-size: 12.5px; color: var(--txt-2); background: var(--g-pale); border: 1px solid #d1fae5; border-radius: 5px; padding: 10px 13px; line-height: 1.6; }
-    .shipping-remark { font-size: 11px; color: var(--txt-4); font-style: italic; margin-top: 8px; }
+/* ── WATERMARK ───────────────────────────────── */
+.watermark {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%) rotate(-28deg);
+  font-family: 'Noto Serif Thai', serif; font-size: 100px; font-weight: 900;
+  color: rgba(220,38,38,0.045); white-space: nowrap; letter-spacing: 12px;
+  pointer-events: none; z-index: 0;
+}
 
-    .totals-col { min-width: 260px; }
-    .tot-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 6px 0;
-      font-size: 13px; color: var(--txt-2);
-      border-bottom: 1px solid #f0f7f0;
-    }
-    .tot-row:last-of-type { border-bottom: none; }
-    .tot-row .amt { font-weight: 600; color: var(--txt-1); }
+/* ── ACTION BAR ──────────────────────────────── */
+.ab {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 62px;
+  background: #fff; border-top: 1px solid #e5e7eb;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 100; padding: 0 20px;
+}
+.ab-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 8px 16px; border-radius: 5px; font-size: 12.5px; font-weight: 600;
+  cursor: pointer; border: none; font-family: inherit; transition: all 0.12s; white-space: nowrap;
+}
+.ab-ghost { background: #fff; border: 1.5px solid #d1d5db; color: var(--body); }
+.ab-ghost:hover { background: #f9fafb; border-color: #9ca3af; }
+.ab-dark { background: var(--forest); color: #fff; }
+.ab-dark:hover { background: var(--green); }
+.ab-amber { background: #b45309; color: #fff; }
+.ab-amber:hover { background: #92400e; }
+.ab-sep { width: 1px; height: 22px; background: #e5e7eb; flex-shrink: 0; }
 
-    .grand-box {
-      background: var(--g-dark);
-      border-radius: 5px;
-      padding: 14px 18px;
-      display: flex; justify-content: space-between; align-items: center;
-      margin-top: 10px;
-    }
-    .grand-lbl { font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.65); letter-spacing: 0.3px; }
-    .grand-amt { font-size: 22px; font-weight: 800; color: white; letter-spacing: -0.5px; }
+/* Status dropdown */
+.dd-wrap { position: relative; }
+.dd-panel {
+  position: absolute; bottom: calc(100% + 8px); left: 0;
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.12); overflow: hidden; min-width: 155px; z-index: 200; display: none;
+}
+.dd-panel.open { display: block; }
+.dd-item { display: block; width: 100%; text-align: left; padding: 10px 16px; font-size: 13px; background: none; border: none; cursor: pointer; font-family: inherit; transition: background 0.1s; }
+.dd-item:hover { background: #f9fafb; }
 
-    /* ============ SIGNATURE SECTION ============ */
-    .sig-section {
-      padding: 28px 44px 20px 52px;
-      display: flex;
-      justify-content: flex-end;
-      gap: 40px;
-    }
+/* ── MODAL ───────────────────────────────────── */
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 300; padding: 20px;
+}
+.modal-box { background: #fff; border-radius: 10px; width: 100%; max-width: 500px; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.25); }
+.modal-head { background: var(--forest); padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; }
+.modal-head h3 { font-size: 14px; font-weight: 700; color: #fff; }
+.modal-close { background: rgba(255,255,255,0.15); border: none; color: #fff; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.modal-body { padding: 18px 20px; }
+.modal-hint-txt { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+.modal-pad {
+  width: 100%; height: 200px; position: relative;
+  border: 2px dashed #d1d5db; border-radius: 6px; background: #fafafa;
+  cursor: crosshair; overflow: hidden; touch-action: none;
+  -webkit-user-select: none; user-select: none;
+}
+#modal-canvas { position: absolute; top: 0; left: 0; cursor: crosshair; touch-action: none; }
+.modal-pad-hint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--faint); pointer-events: none; }
+.modal-foot { padding: 12px 20px; border-top: 1px solid #e5e7eb; display: flex; gap: 8px; justify-content: flex-end; }
+.modal-btn { padding: 9px 20px; border-radius: 5px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.12s; }
 
-    .sig-block { text-align: center; min-width: 220px; }
-    .sig-canvas-wrap {
-      width: 220px; height: 80px;
-      border-bottom: 1.5px solid #9ca3af;
-      position: relative;
-      cursor: crosshair;
-      background: transparent;
-      display: block;
-      margin: 0 auto;
-    }
-    .sig-canvas {
-      width: 100%; height: 100%;
-      display: block;
-      touch-action: none;
-    }
-    /* Signed image (replaces canvas) */
-    .sig-image {
-      width: 220px; height: 80px;
-      object-fit: contain;
-      display: block;
-      margin: 0 auto;
-    }
+/* ── LOADER ──────────────────────────────────── */
+#loader {
+  position: fixed; inset: 0; background: rgba(255,255,255,0.94);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 999; gap: 14px;
+}
+.spin { width: 34px; height: 34px; border: 3px solid var(--mint); border-top-color: var(--mid); border-radius: 50%; animation: spin .6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-    .sig-actions {
-      display: flex; justify-content: center; gap: 6px;
-      margin-top: 5px;
-    }
-    .sig-action-btn {
-      font-size: 10px; padding: 3px 10px; border-radius: 3px;
-      cursor: pointer; border: none; font-family: inherit;
-      font-weight: 600; transition: all 0.15s;
-    }
-    .sig-btn-clear { background: #fee2e2; color: #991b1b; }
-    .sig-btn-clear:hover { background: #fecaca; }
-    .sig-btn-save  { background: var(--g-light); color: var(--g-mid); }
-    .sig-btn-save:hover  { background: #bbf7d0; }
-
-    .sig-name-txt { font-size: 13px; font-weight: 600; color: var(--txt-1); margin-top: 8px; }
-    .sig-co-txt   { font-size: 11px; color: var(--txt-3); margin-top: 2px; }
-
-    .signed-indicator {
-      display: inline-flex; align-items: center; gap: 4px;
-      font-size: 10px; color: var(--g-main); font-weight: 600;
-      margin-top: 4px;
-    }
-
-    /* ============ FOOTER ============ */
-    .doc-footer {
-      background: var(--g-pale);
-      border-top: 1px solid #d1fae5;
-      padding: 11px 52px;
-      display: flex; align-items: center; justify-content: space-between;
-      margin-top: 16px;
-    }
-    .footer-ref { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--g-mid); }
-    .footer-co  { font-size: 10.5px; color: var(--txt-4); }
-
-    /* ============ WATERMARK ============ */
-    .watermark {
-      position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%) rotate(-30deg);
-      font-size: 96px; font-weight: 900;
-      color: rgba(220,38,38,0.05);
-      pointer-events: none;
-      white-space: nowrap; letter-spacing: 12px;
-      z-index: 1;
-    }
-
-    /* ============ NAVBAR ============ */
-    .app-nav {
-      background: var(--g-dark);
-      padding: 11px 20px;
-      position: sticky; top: 0; z-index: 50;
-      display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.25);
-    }
-    .nav-left { display: flex; align-items: center; gap: 10px; }
-    .nav-back {
-      color: #86efac; font-size: 12.5px; text-decoration: none;
-      padding: 4px 10px; border-radius: 4px;
-      transition: background 0.15s;
-    }
-    .nav-back:hover { background: rgba(255,255,255,0.1); }
-    .nav-pipe { color: #4ade80; }
-    .nav-doctitle { font-size: 13px; font-weight: 500; color: #d1fae5; }
-    .nav-badge {
-      font-size: 11px; font-weight: 700;
-      padding: 3px 11px; border-radius: 3px;
-    }
-    .nav-logout {
-      background: rgba(255,255,255,0.1); color: white; border: none;
-      padding: 6px 14px; border-radius: 5px; font-size: 12.5px;
-      cursor: pointer; font-family: inherit; transition: background 0.15s;
-    }
-    .nav-logout:hover { background: rgba(255,255,255,0.18); }
-
-    /* ============ ACTION BAR ============ */
-    .action-bar {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background: white;
-      border-top: 1px solid var(--border);
-      padding: 10px 20px;
-      display: flex; align-items: center; justify-content: center;
-      gap: 8px;
-      box-shadow: 0 -4px 24px rgba(0,0,0,0.08);
-      z-index: 100;
-    }
-    .act-btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 9px 18px; border-radius: 5px;
-      font-size: 13px; font-weight: 600;
-      cursor: pointer; transition: all 0.15s;
-      border: none; white-space: nowrap;
-      font-family: 'IBM Plex Sans Thai', 'Sarabun', sans-serif;
-    }
-    .btn-ghost { background: transparent; border: 1.5px solid var(--border); color: var(--txt-2); }
-    .btn-ghost:hover { background: #f9fafb; }
-    .btn-dark  { background: var(--g-dark); color: white; }
-    .btn-dark:hover  { background: #0a2a1a; }
-    .btn-main  { background: var(--g-main); color: white; }
-    .btn-main:hover  { background: var(--g-mid); }
-    .btn-amber { background: #d97706; color: white; }
-    .btn-amber:hover { background: #b45309; }
-
-    .act-sep { width: 1px; height: 24px; background: var(--border); }
-
-    /* Status dropdown */
-    .dd-wrap { position: relative; }
-    .dd-menu {
-      position: absolute; bottom: calc(100% + 8px); left: 0;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.12);
-      overflow: hidden; min-width: 158px; z-index: 200;
-      display: none;
-    }
-    .dd-menu button {
-      display: block; width: 100%; text-align: left;
-      padding: 10px 16px; font-size: 13px;
-      background: none; border: none; cursor: pointer;
-      font-family: 'IBM Plex Sans Thai', 'Sarabun', sans-serif;
-      transition: background 0.1s;
-    }
-    .dd-menu button:hover { background: #f9fafb; }
-
-    /* ============ SIGNATURE MODAL ============ */
-    .sig-modal-bg {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.5);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 300;
-      padding: 20px;
-    }
-    .sig-modal {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-      width: 100%; max-width: 480px;
-      overflow: hidden;
-    }
-    .sig-modal-head {
-      background: var(--g-dark);
-      color: white; padding: 16px 22px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .sig-modal-head h3 { font-size: 15px; font-weight: 700; }
-    .sig-modal-close {
-      background: rgba(255,255,255,0.15); border: none; color: white;
-      width: 28px; height: 28px; border-radius: 50%;
-      cursor: pointer; font-size: 16px; display: flex;
-      align-items: center; justify-content: center;
-    }
-    .sig-modal-body { padding: 20px 22px; }
-    .sig-modal-canvas-wrap {
-      width: 100%; height: 180px;
-      border: 2px dashed #d1d5db;
-      border-radius: 8px;
-      position: relative;
-      cursor: crosshair;
-      overflow: hidden;
-      background: #fafafa;
-      touch-action: none;
-    }
-    .sig-modal-canvas-wrap canvas {
-      width: 100%; height: 100%; display: block;
-      touch-action: none;
-    }
-    .sig-modal-placeholder {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--txt-4); font-size: 13px; pointer-events: none;
-    }
-    .sig-modal-footer {
-      padding: 14px 22px;
-      border-top: 1px solid var(--border);
-      display: flex; gap: 8px; justify-content: flex-end;
-    }
-    .sig-modal-btn {
-      padding: 9px 20px; border-radius: 6px; border: none;
-      font-size: 13px; font-weight: 600; cursor: pointer;
-      font-family: 'IBM Plex Sans Thai', 'Sarabun', sans-serif;
-      transition: all 0.15s;
-    }
-
-    /* ============ LOADING ============ */
-    #loading-overlay {
-      position: fixed; inset: 0;
-      background: rgba(255,255,255,0.92);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      z-index: 999; gap: 14px;
-    }
-    .spinner {
-      width: 36px; height: 36px;
-      border: 3px solid #bbf7d0;
-      border-top-color: var(--g-mid);
-      border-radius: 50%;
-      animation: spin 0.65s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ============ TOAST ============ */
-    #toast {
-      position: fixed; top: 64px; right: 20px; z-index: 500;
-      padding: 11px 18px; border-radius: 7px;
-      font-size: 13px; font-weight: 600; color: white;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-      transition: opacity 0.3s, transform 0.3s;
-      transform: translateY(0);
-    }
-    #toast.hidden { opacity: 0; transform: translateY(-8px); pointer-events: none; }
-  </style>
+/* ── TOAST ───────────────────────────────────── */
+#toast { position: fixed; top: 62px; right: 18px; z-index: 500; padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #fff; box-shadow: 0 4px 16px rgba(0,0,0,0.18); transition: opacity .25s, transform .25s; }
+#toast.hidden { opacity: 0; transform: translateY(-6px); pointer-events: none; }
+</style>
 </head>
 <body>
 
-<!-- Loading -->
-<div id="loading-overlay">
-  <div class="spinner"></div>
-  <p style="color:var(--g-mid);font-size:13px;font-weight:600;">กำลังโหลดเอกสาร...</p>
+<!-- LOADER -->
+<div id="loader">
+  <div class="spin"></div>
+  <p style="font-size:13px;color:#166534;font-weight:600;">กำลังโหลดเอกสาร...</p>
 </div>
 
-<!-- Navbar -->
-<nav class="app-nav no-print">
-  <div class="nav-left">
-    <a href="dashboard.html" class="nav-back">← กลับ</a>
-    <span class="nav-pipe">|</span>
-    <span class="nav-doctitle" id="nav-title">ดูเอกสาร</span>
+<!-- TOPBAR -->
+<nav class="topbar no-print">
+  <div class="topbar-l">
+    <a href="dashboard.html" style="text-decoration:none;"><button class="tb-btn">← กลับ</button></a>
+    <div class="tb-div"></div>
+    <div class="topbar-brand"><span>👍</span> Kang Bang</div>
+    <div class="tb-div"></div>
+    <span class="topbar-doc" id="nav-title">ดูเอกสาร</span>
   </div>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <span id="nav-status-badge" class="nav-badge"></span>
-    <button onclick="logout()" class="nav-logout">ออกจากระบบ</button>
+  <div class="topbar-r">
+    <span id="status-pill" class="tb-pill"></span>
+    <button class="tb-btn" onclick="logout()">ออกจากระบบ</button>
   </div>
 </nav>
 
-<!-- ======== DOCUMENT PAPER ======== -->
-<div class="paper-wrap">
-<div class="doc-paper" id="document-card">
+<!-- DOCUMENT SHEET -->
+<div class="sheet-wrap">
+<div class="doc-sheet" id="doc-card">
 
   <div id="watermark" class="watermark" style="display:none;">ยกเลิก</div>
 
-  <!-- HEADER -->
+  <!-- HEADER BAND -->
   <div class="doc-header">
-    <div class="company-block">
-      <!-- Logo: click to upload (no-print shows upload hint) -->
-      <div class="logo-area no-print" id="logo-area-btn" onclick="document.getElementById('logo-input').click()" title="คลิกเพื่อเปลี่ยนโลโก้">
-        <div class="logo-fallback" id="logo-fallback">👍</div>
-        <img id="logo-img" src="" alt="logo"/>
-        <div class="logo-hover-overlay">
-          <span>🖼️</span>
-          <span>เปลี่ยนโลโก้</span>
-        </div>
+    <div class="co-block">
+      <!--
+        ════════════════════════════════════════════════════════
+        โลโก้ — วิธีใส่:
+        1. สร้าง folder ชื่อ  assets  ใน GitHub repo ของคุณ
+        2. วางไฟล์โลโก้ชื่อ  logo.png  ใน folder นั้น
+           path จะเป็น:  assets/logo.png
+        3. ระบบจะโหลดอัตโนมัติ ถ้าไฟล์ไม่พบจะแสดง 👍 แทน
+        ════════════════════════════════════════════════════════
+      -->
+      <div class="logo-box">
+        <img id="logo-img"
+             src="assets/logo.png"
+             alt="Kang Bang Logo"
+             onload="this.style.display='block';document.getElementById('logo-fb').style.display='none';"
+             onerror="this.style.display='none';document.getElementById('logo-fb').style.display='flex';"
+             style="display:none;"/>
+        <div id="logo-fb" class="logo-fb"
+             style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">👍</div>
       </div>
-      <!-- Static logo for print (no hover overlay) -->
-      <div style="display:none;" id="logo-area-print">
-        <img id="logo-img-print" src="" alt="logo" style="width:80px;height:66px;object-fit:contain;"/>
-        <div id="logo-fallback-print" style="width:80px;height:66px;background:var(--g-dark);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px;">👍</div>
-      </div>
-      <input type="file" id="logo-input" accept="image/*" style="display:none;" onchange="handleLogoUpload(event)"/>
-      <div class="company-text">
+      <div>
         <div class="co-name">บริษัท คัง ปั้ง วัสดุก่อสร้าง จำกัด</div>
         <div class="co-detail">
           28/101 หมู่ที่ 19 ตำบลบางพลีใหญ่ อำเภอบางพลี จังหวัดสมุทรปราการ 10540<br/>
@@ -545,122 +346,84 @@
         </div>
       </div>
     </div>
-    <div class="doc-title-block">
-      <div id="doc-en-label" class="doc-en-label">QUOTATION</div>
-      <div id="doc-th-title" class="doc-th-title">ใบเสนอราคา</div>
+    <div class="doc-title-r">
+      <div class="dt-en" id="dt-en">QUOTATION</div>
+      <div class="dt-th" id="dt-th">ใบเสนอราคา</div>
       <table class="doc-meta">
-        <tr>
-          <td class="lbl">เลขที่</td>
-          <td class="val" id="view-doc-number">—</td>
-        </tr>
-        <tr>
-          <td class="lbl">วันที่</td>
-          <td class="val" id="view-issue-date">—</td>
-        </tr>
-        <tr id="valid-row" style="display:none;">
-          <td class="lbl">ใช้ได้ถึง</td>
-          <td class="val" id="view-valid-until">—</td>
-        </tr>
-        <tr id="ref-row" style="display:none;">
-          <td class="lbl">อ้างอิง</td>
-          <td class="val" id="view-ref-doc">—</td>
-        </tr>
+        <tr><td class="dm-l">เลขที่</td>   <td class="dm-v" id="v-num">—</td></tr>
+        <tr><td class="dm-l">วันที่</td>   <td class="dm-v" id="v-date">—</td></tr>
+        <tr id="row-valid" style="display:none;"><td class="dm-l">ใช้ได้ถึง</td><td class="dm-v" id="v-valid">—</td></tr>
+        <tr id="row-ref"   style="display:none;"><td class="dm-l">อ้างอิง</td>  <td class="dm-v" id="v-ref">—</td></tr>
       </table>
     </div>
   </div>
 
-  <div class="h-rule"></div>
-
   <!-- CUSTOMER -->
-  <div class="customer-section">
-    <div>
-      <div class="cust-to-label" id="cust-to-label">เสนอราคาให้กับ</div>
-      <div class="cust-name" id="view-cust-name">—</div>
-      <div class="cust-details">
-        <div class="cust-detail" id="cust-phone">
-          <div class="cust-icon">📞</div>
-          <span id="cust-phone-val">—</span>
-        </div>
-        <div class="cust-detail" id="cust-email" style="display:none;">
-          <div class="cust-icon">✉</div>
-          <span id="cust-email-val"></span>
-        </div>
-        <div class="cust-detail" id="cust-addr" style="display:none;">
-          <div class="cust-icon">📍</div>
-          <span id="cust-addr-val"></span>
-        </div>
-      </div>
-      <div id="cust-tax" style="display:none;font-size:11px;color:var(--txt-4);margin-top:5px;"></div>
+  <div class="cust-band">
+    <div class="cust-to" id="cust-to">เสนอราคาให้กับ</div>
+    <div class="cust-name" id="v-cname">—</div>
+    <div class="cust-row">
+      <div class="cust-item"><div class="cust-dot"></div><span id="v-phone">—</span></div>
+      <div class="cust-item" id="c-email" style="display:none;"><div class="cust-dot"></div><span id="v-email"></span></div>
+      <div class="cust-item" id="c-addr"  style="display:none;"><div class="cust-dot"></div><span id="v-addr"></span></div>
     </div>
+    <div class="cust-tax" id="v-tax" style="display:none;"></div>
   </div>
 
-  <div class="h-rule"></div>
-
   <!-- ITEMS -->
-  <div class="items-section" style="margin-top:22px;">
-    <table class="items-table">
+  <div class="items-wrap">
+    <table class="inv-table">
       <thead>
         <tr>
-          <th style="text-align:center;width:36px;">#</th>
-          <th style="text-align:left;width:90px;">รหัสสินค้า</th>
-          <th style="text-align:left;">รายการ</th>
-          <th style="text-align:center;width:60px;">หน่วย</th>
-          <th style="text-align:center;width:72px;">จำนวน</th>
-          <th style="text-align:right;width:118px;">ราคา/หน่วย (฿)</th>
-          <th style="text-align:right;width:118px;">ยอดรวม (฿)</th>
+          <th style="text-align:center;width:32px;">#</th>
+          <th style="text-align:left;width:84px;">รหัสสินค้า</th>
+          <th style="text-align:left;">รายการ / รายละเอียด</th>
+          <th style="text-align:center;width:58px;">หน่วย</th>
+          <th style="text-align:center;width:66px;">จำนวน</th>
+          <th style="text-align:right;width:116px;">ราคา/หน่วย (฿)</th>
+          <th style="text-align:right;width:116px;">ยอดรวม (฿)</th>
         </tr>
       </thead>
-      <tbody id="items-tbody"></tbody>
+      <tbody id="items-tb"></tbody>
     </table>
   </div>
 
-  <!-- TOTALS -->
-  <div class="bottom-section">
-    <div class="notes-col">
+  <!-- NOTES + TOTALS -->
+  <div class="doc-bottom">
+    <div class="notes-area">
       <div id="notes-sec" style="display:none;">
         <div class="notes-lbl">หมายเหตุ</div>
-        <div class="notes-body" id="view-notes"></div>
+        <div class="notes-body" id="v-notes"></div>
       </div>
-      <div class="shipping-remark" id="shipping-remark"></div>
+      <div class="ship-note" id="v-shipnote"></div>
     </div>
-    <div class="totals-col">
-      <div class="tot-row">
-        <span>ยอดรวม</span>
-        <span class="amt" id="view-subtotal">—</span>
-      </div>
-      <div class="tot-row" id="vat-row" style="display:none;">
-        <span id="vat-label">VAT 7%</span>
-        <span class="amt" id="view-vat">—</span>
-      </div>
-      <div class="tot-row" id="shipping-row" style="display:none;">
-        <span>ค่าขนส่ง</span>
-        <span class="amt" id="view-shipping">—</span>
-      </div>
+    <div class="totals-area">
+      <div class="tot-row"><span>ยอดรวม</span><span class="tot-v" id="v-sub">—</span></div>
+      <div class="tot-row" id="row-vat"  style="display:none;"><span id="vat-lbl">VAT 7%</span><span class="tot-v" id="v-vat">—</span></div>
+      <div class="tot-row" id="row-ship" style="display:none;"><span>ค่าขนส่ง</span><span class="tot-v" id="v-ship">—</span></div>
       <div class="grand-box">
         <span class="grand-lbl">ยอดชำระรวมทั้งสิ้น</span>
-        <span class="grand-amt" id="view-total">—</span>
+        <span class="grand-amt" id="v-total">—</span>
       </div>
     </div>
   </div>
 
   <!-- SIGNATURE -->
-  <div class="sig-section">
+  <div class="sig-area">
     <div class="sig-block">
-      <!-- Canvas (shows when no signature yet) -->
-      <div id="sig-canvas-wrap" class="sig-canvas-wrap">
-        <canvas id="sig-canvas" class="sig-canvas"></canvas>
-        <div id="sig-placeholder" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--txt-4);font-size:12px;pointer-events:none;">
-          ลายเซ็นผู้มีอำนาจ
-        </div>
+      <!-- Inline drawing pad -->
+      <div id="sig-pad" class="sig-pad">
+        <canvas id="sig-canvas"></canvas>
+        <div id="sig-hint" class="sig-hint-txt">✍️ เซ็นชื่อที่นี่</div>
       </div>
-      <!-- Saved signature image (shows after saving) -->
-      <img id="sig-saved-img" class="sig-image" src="" alt="signature" style="display:none;border-bottom:1.5px solid #9ca3af;"/>
-      <!-- Inline action buttons (no-print) -->
-      <div class="sig-actions no-print" id="sig-actions">
-        <button class="sig-action-btn sig-btn-clear" onclick="clearSignature()">ล้าง</button>
-        <button class="sig-action-btn sig-btn-save"  onclick="saveSignature()">บันทึกลายเซ็น</button>
+      <!-- Confirmed signature image -->
+      <img id="sig-img" class="sig-saved" style="display:none;" alt="ลายเซ็น"/>
+      <!-- Controls -->
+      <div id="sig-ctls" class="sig-ctls no-print">
+        <button class="sig-btn sig-clear" onclick="clearSig()">ล้าง</button>
+        <button class="sig-btn sig-ok"    onclick="saveSig()">✓ ยืนยันลายเซ็น</button>
       </div>
-      <div id="sig-signed-badge" style="display:none;" class="signed-indicator">✅ ลงนามแล้ว</div>
+      <div id="sig-badge" class="sig-badge" style="display:none;">✅ ลงนามแล้ว</div>
       <div class="sig-name-txt">ผู้มีอำนาจลงนาม</div>
       <div class="sig-co-txt">บริษัท คัง ปั้ง วัสดุก่อสร้าง จำกัด</div>
     </div>
@@ -668,442 +431,348 @@
 
   <!-- FOOTER -->
   <div class="doc-footer">
-    <span class="footer-ref" id="footer-type">QUOTATION</span>
-    <span class="footer-co" id="footer-info"></span>
+    <span class="ft-type" id="ft-type">QUOTATION</span>
+    <span class="ft-info" id="ft-info"></span>
   </div>
 
-</div><!-- /doc-paper -->
-</div><!-- /paper-wrap -->
+</div><!-- /doc-sheet -->
+</div><!-- /sheet-wrap -->
 
-<!-- ======== ACTION BAR ======== -->
-<div class="action-bar no-print">
-
-  <a href="dashboard.html" style="text-decoration:none;">
-    <button class="act-btn btn-ghost">← รายการ</button>
-  </a>
-
-  <div class="act-sep"></div>
-
-  <button class="act-btn btn-ghost" onclick="editDoc()">✏️ แก้ไข</button>
-
+<!-- ACTION BAR -->
+<div class="ab no-print">
+  <a href="dashboard.html" style="text-decoration:none;"><button class="ab-btn ab-ghost">← รายการ</button></a>
+  <div class="ab-sep"></div>
+  <button class="ab-btn ab-ghost" onclick="editDoc()">✏️ แก้ไข</button>
   <div class="dd-wrap">
-    <button class="act-btn btn-ghost" onclick="toggleDD()">🔄 สถานะ ▾</button>
-    <div class="dd-menu" id="dd-status">
-      <button onclick="changeStatus('draft')">📝 ร่าง</button>
-      <button onclick="changeStatus('sent')"      style="color:#92400e;">📤 ส่งแล้ว</button>
-      <button onclick="changeStatus('approved')"  style="color:#166534;">✅ อนุมัติ</button>
-      <button onclick="changeStatus('cancelled')" style="color:#991b1b;">❌ ยกเลิก</button>
+    <button class="ab-btn ab-ghost" onclick="toggleDD()">🔄 สถานะ ▾</button>
+    <div class="dd-panel" id="dd-panel">
+      <button class="dd-item" onclick="setStatus('draft')">📝 ร่าง</button>
+      <button class="dd-item" style="color:#92400e;" onclick="setStatus('sent')">📤 ส่งแล้ว</button>
+      <button class="dd-item" style="color:#166534;" onclick="setStatus('approved')">✅ อนุมัติ</button>
+      <button class="dd-item" style="color:#991b1b;" onclick="setStatus('cancelled')">❌ ยกเลิก</button>
     </div>
   </div>
-
-  <div class="act-sep"></div>
-
-  <!-- Logo upload -->
-  <label for="logo-input" class="act-btn btn-ghost" style="cursor:pointer;">🖼️ ใส่โลโก้</label>
-
-  <!-- Signature -->
-  <button class="act-btn btn-ghost" onclick="openSigModal()">✍️ ลายเซ็น</button>
-
-  <div class="act-sep"></div>
-
-  <button class="act-btn btn-amber" onclick="saveAsImage()">💾 บันทึกรูป</button>
-  <button class="act-btn btn-dark"  onclick="printDoc()">🖨️ พิมพ์ / PDF</button>
-
+  <div class="ab-sep"></div>
+  <button class="ab-btn ab-ghost" onclick="openSigModal()">✍️ ลายเซ็น</button>
+  <button class="ab-btn ab-amber" onclick="saveImg()">💾 บันทึกรูป</button>
+  <button class="ab-btn ab-dark"  onclick="printDoc()">🖨️ พิมพ์ / PDF</button>
 </div>
 
-<!-- ======== SIGNATURE MODAL ======== -->
-<div id="sig-modal" class="sig-modal-bg" style="display:none;">
-  <div class="sig-modal">
-    <div class="sig-modal-head">
+<!-- SIGNATURE MODAL -->
+<div id="sig-modal" class="modal-bg" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-head">
       <h3>✍️ ลายเซ็นดิจิทัล</h3>
-      <button class="sig-modal-close" onclick="closeSigModal()">✕</button>
+      <button class="modal-close" onclick="closeSigModal()">✕</button>
     </div>
-    <div class="sig-modal-body">
-      <p style="font-size:12.5px;color:var(--txt-3);margin-bottom:12px;">เซ็นชื่อในกรอบด้านล่าง (ใช้เมาส์หรือสัมผัสหน้าจอ)</p>
-      <div class="sig-modal-canvas-wrap" id="modal-canvas-wrap">
-        <canvas id="modal-sig-canvas" touch-action="none"></canvas>
-        <div class="sig-modal-placeholder" id="modal-placeholder">วาดลายเซ็นที่นี่...</div>
+    <div class="modal-body">
+      <p class="modal-hint-txt">เซ็นชื่อในกรอบด้านล่าง — ใช้เมาส์หรือนิ้วสัมผัส</p>
+      <div class="modal-pad" id="modal-pad">
+        <canvas id="modal-canvas"></canvas>
+        <div class="modal-pad-hint" id="modal-pad-hint">วาดลายเซ็นที่นี่...</div>
       </div>
     </div>
-    <div class="sig-modal-footer">
-      <button class="sig-modal-btn" onclick="clearModalSig()" style="background:#fee2e2;color:#991b1b;">ล้าง</button>
-      <button class="sig-modal-btn" onclick="applyModalSig()" style="background:var(--g-dark);color:white;">ใช้ลายเซ็นนี้</button>
+    <div class="modal-foot">
+      <button class="modal-btn" onclick="clearModalSig()" style="background:#fee2e2;color:#991b1b;">ล้าง</button>
+      <button class="modal-btn" onclick="applyModalSig()" style="background:#0c2d17;color:#fff;">ใช้ลายเซ็นนี้</button>
     </div>
   </div>
 </div>
 
-<!-- Toast -->
 <div id="toast" class="hidden"></div>
 
 <script>
-/* ==================== SUPABASE ==================== */
-const SUPABASE_URL      = 'https://ygdcbkhaqsaiyymxvrph.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnZGNia2hhcXNhaXl5bXh2cnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzY4NTMsImV4cCI6MjA4ODYxMjg1M30.1quRttxAsp4b9471rdUh0zkdx97tfK9pW__0Bh3RWY0'
+/* ══════════════════════════════════════
+   SUPABASE
+══════════════════════════════════════ */
+const SB_URL = 'https://ygdcbkhaqsaiyymxvrph.supabase.co'
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnZGNia2hhcXNhaXl5bXh2cnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzY4NTMsImV4cCI6MjA4ODYxMjg1M30.1quRttxAsp4b9471rdUh0zkdx97tfK9pW__0Bh3RWY0'
 const { createClient } = supabase
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+const sb = createClient(SB_URL, SB_KEY)
 
-let currentDoc   = null
-let currentDocId = null
+let doc = null, docId = null
 
-const DOC_TYPE = {
-  quotation: { th:'ใบเสนอราคา',    en:'QUOTATION',       lbl:'เสนอราคาให้กับ' },
-  receipt:   { th:'ใบเสร็จรับเงิน', en:'RECEIPT',         lbl:'ออกให้กับ'      },
-  delivery:  { th:'ใบส่งสินค้า',   en:'DELIVERY ORDER',  lbl:'จัดส่งให้กับ'   },
+const TYPES = {
+  quotation: { th:'ใบเสนอราคา',    en:'QUOTATION',       to:'เสนอราคาให้กับ' },
+  receipt:   { th:'ใบเสร็จรับเงิน', en:'RECEIPT',         to:'ออกให้กับ'      },
+  delivery:  { th:'ใบส่งสินค้า',   en:'DELIVERY ORDER',  to:'จัดส่งให้กับ'   },
 }
-const STATUS_CFG = {
-  draft:     { label:'ร่าง',    bg:'#e5e7eb', tx:'#374151' },
-  sent:      { label:'ส่งแล้ว', bg:'#fef3c7', tx:'#92400e' },
-  approved:  { label:'อนุมัติ', bg:'#d1fae5', tx:'#065f46' },
-  cancelled: { label:'ยกเลิก', bg:'#fee2e2', tx:'#991b1b' },
+const STATUSES = {
+  draft:     { lbl:'ร่าง',    bg:'#e5e7eb', tx:'#374151' },
+  sent:      { lbl:'ส่งแล้ว', bg:'#fef3c7', tx:'#92400e' },
+  approved:  { lbl:'อนุมัติ', bg:'#d1fae5', tx:'#065f46' },
+  cancelled: { lbl:'ยกเลิก', bg:'#fee2e2', tx:'#991b1b' },
 }
+const thDate  = s => s ? new Date(s).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}) : '—'
+const thMoney = n => '฿' + Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:2})
 
-const fmt = (s) => s ? new Date(s).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}) : '—'
-const money = (n) => '฿' + Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:2})
-
-/* ==================== INIT ==================== */
+/* ── INIT ─────────────────────────────────── */
 async function init() {
   const { data:{ session } } = await sb.auth.getSession()
-  if (!session) { window.location.href = 'index.html'; return }
-
-  const params = new URLSearchParams(window.location.search)
-  currentDocId = params.get('id')
-  if (!currentDocId) { window.location.href = 'dashboard.html'; return }
-
-  // Restore logo
-  const savedLogo = localStorage.getItem('kb_logo')
-  if (savedLogo) applyLogo(savedLogo)
-
-  // Restore signature for this doc
-  const savedSig = localStorage.getItem('kb_sig_' + currentDocId)
-  if (savedSig) applySignatureImage(savedSig)
-
-  await loadDoc(currentDocId)
-  document.getElementById('loading-overlay').style.display = 'none'
-  initInlineSig()
+  if (!session) { location.href='index.html'; return }
+  docId = new URLSearchParams(location.search).get('id')
+  if (!docId) { location.href='dashboard.html'; return }
+  const savedSig = localStorage.getItem('kb_sig_'+docId)
+  if (savedSig) showSavedSig(savedSig)
+  await fetchDoc()
+  document.getElementById('loader').style.display = 'none'
+  if (!savedSig) initPad()
 }
 
-/* ==================== LOAD DOC ==================== */
-async function loadDoc(id) {
-  const { data:doc, error } = await sb.from('documents').select('*').eq('id',id).single()
-  if (error || !doc) { showToast('ไม่พบเอกสาร','error'); return }
-  const { data:items } = await sb.from('document_items').select('*').eq('document_id',id).order('sort_order')
-  currentDoc = { ...doc, items: items||[] }
-  renderDoc()
+async function fetchDoc() {
+  const { data:d }     = await sb.from('documents').select('*').eq('id',docId).single()
+  const { data:items } = await sb.from('document_items').select('*').eq('document_id',docId).order('sort_order')
+  doc = { ...d, items: items||[] }
+  render()
 }
 
-/* ==================== RENDER ==================== */
-function renderDoc() {
-  const d      = currentDoc
-  const type   = DOC_TYPE[d.doc_type]   || DOC_TYPE.quotation
-  const status = STATUS_CFG[d.status]   || STATUS_CFG.draft
+/* ── RENDER ───────────────────────────────── */
+function render() {
+  const t = TYPES[doc.doc_type]  || TYPES.quotation
+  const s = STATUSES[doc.status] || STATUSES.draft
 
-  // Navbar
-  document.getElementById('nav-title').textContent = `${type.th} · ${d.doc_number}`
-  document.title = `${type.th} ${d.doc_number} — Kang Bang`
-  const badge = document.getElementById('nav-status-badge')
-  badge.textContent = status.label
-  badge.style.background = status.bg
-  badge.style.color = status.tx
+  document.getElementById('nav-title').textContent = `${t.th} · ${doc.doc_number}`
+  document.title = `${t.th} ${doc.doc_number} — Kang Bang`
+  const pill = document.getElementById('status-pill')
+  pill.textContent = s.lbl
+  pill.style.background = s.bg; pill.style.color = s.tx
 
-  // Header
-  document.getElementById('doc-en-label').textContent  = type.en
-  document.getElementById('doc-th-title').textContent  = type.th
-  document.getElementById('view-doc-number').textContent = d.doc_number
-  document.getElementById('view-issue-date').textContent = fmt(d.issue_date)
-  document.getElementById('cust-to-label').textContent = type.lbl
+  document.getElementById('dt-en').textContent    = t.en
+  document.getElementById('dt-th').textContent    = t.th
+  document.getElementById('v-num').textContent    = doc.doc_number
+  document.getElementById('v-date').textContent   = thDate(doc.issue_date)
+  document.getElementById('cust-to').textContent  = t.to
 
-  if (d.valid_until && d.doc_type === 'quotation') {
-    document.getElementById('valid-row').style.display = ''
-    document.getElementById('view-valid-until').textContent = fmt(d.valid_until)
+  if (doc.valid_until && doc.doc_type==='quotation') {
+    document.getElementById('row-valid').style.display=''
+    document.getElementById('v-valid').textContent = thDate(doc.valid_until)
   }
-  if (d.ref_doc_id) {
-    document.getElementById('ref-row').style.display = ''
-    loadRefDoc(d.ref_doc_id)
+  if (doc.ref_doc_id) {
+    document.getElementById('row-ref').style.display=''
+    sb.from('documents').select('doc_number').eq('id',doc.ref_doc_id).single()
+      .then(({data})=>{ if(data) document.getElementById('v-ref').textContent=data.doc_number })
   }
 
-  // Customer
-  document.getElementById('view-cust-name').textContent  = d.customer_name
-  document.getElementById('cust-phone-val').textContent  = d.customer_phone
-  if (d.customer_email) {
-    document.getElementById('cust-email').style.display = 'flex'
-    document.getElementById('cust-email-val').textContent = d.customer_email
-  }
-  if (d.customer_address) {
-    document.getElementById('cust-addr').style.display = 'flex'
-    document.getElementById('cust-addr-val').textContent = d.customer_address
-  }
-  if (d.customer_tax_id) {
-    document.getElementById('cust-tax').style.display = ''
-    document.getElementById('cust-tax').textContent = 'เลขผู้เสียภาษี: ' + d.customer_tax_id
-  }
+  document.getElementById('v-cname').textContent = doc.customer_name
+  document.getElementById('v-phone').textContent = doc.customer_phone
+  if (doc.customer_email) { document.getElementById('c-email').style.display='flex'; document.getElementById('v-email').textContent=doc.customer_email }
+  if (doc.customer_address) { document.getElementById('c-addr').style.display='flex'; document.getElementById('v-addr').textContent=doc.customer_address }
+  if (doc.customer_tax_id) { document.getElementById('v-tax').style.display=''; document.getElementById('v-tax').textContent='เลขผู้เสียภาษี: '+doc.customer_tax_id }
 
-  // Items
-  const tbody = document.getElementById('items-tbody')
-  tbody.innerHTML = d.items.length ? d.items.map((it,i)=>`
-    <tr>
-      <td style="text-align:center;color:var(--txt-4);font-size:12px;">${i+1}</td>
-      <td style="font-family:monospace;color:var(--g-mid);font-weight:600;font-size:12.5px;">${it.product_code||'—'}</td>
-      <td>
-        <div style="font-weight:600;color:var(--txt-1);">${it.product_name}</div>
-        ${it.description?`<div style="font-size:11.5px;color:var(--txt-4);margin-top:2px;">${it.description}</div>`:''}
-      </td>
-      <td style="text-align:center;">${it.unit}</td>
-      <td style="text-align:center;font-weight:600;">${Number(it.quantity).toLocaleString('th-TH')}</td>
-      <td style="text-align:right;">${Number(it.unit_price).toLocaleString('th-TH',{minimumFractionDigits:2})}</td>
-      <td style="text-align:right;font-weight:700;color:var(--txt-1);">${Number(it.total_price).toLocaleString('th-TH',{minimumFractionDigits:2})}</td>
-    </tr>`).join('')
-    : `<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--txt-4);">ไม่มีรายการสินค้า</td></tr>`
+  document.getElementById('items-tb').innerHTML = doc.items.length
+    ? doc.items.map((it,i) => `
+      <tr>
+        <td class="c-no">${i+1}</td>
+        <td class="c-code">${it.product_code||'—'}</td>
+        <td><div class="c-name">${it.product_name}</div>${it.description?`<div class="c-desc">${it.description}</div>`:''}</td>
+        <td class="c-unit">${it.unit}</td>
+        <td class="c-qty">${Number(it.quantity).toLocaleString('th-TH')}</td>
+        <td class="c-price">${Number(it.unit_price).toLocaleString('th-TH',{minimumFractionDigits:2})}</td>
+        <td class="c-total">${Number(it.total_price).toLocaleString('th-TH',{minimumFractionDigits:2})}</td>
+      </tr>`).join('')
+    : `<tr><td colspan="7" style="text-align:center;padding:32px;color:#9ca3af;">ไม่มีรายการสินค้า</td></tr>`
 
-  // Totals
-  document.getElementById('view-subtotal').textContent = money(d.subtotal)
-  if (d.vat_percent > 0) {
-    document.getElementById('vat-row').style.display = ''
-    document.getElementById('vat-label').textContent = `VAT ${d.vat_percent}%`
-    document.getElementById('view-vat').textContent  = money(d.vat_amount)
+  document.getElementById('v-sub').textContent = thMoney(doc.subtotal)
+  if (doc.vat_percent>0) {
+    document.getElementById('row-vat').style.display=''
+    document.getElementById('vat-lbl').textContent=`VAT ${doc.vat_percent}%`
+    document.getElementById('v-vat').textContent=thMoney(doc.vat_amount)
   }
-  if (d.shipping > 0) {
-    document.getElementById('shipping-row').style.display = ''
-    document.getElementById('view-shipping').textContent  = money(d.shipping)
+  if (doc.shipping>0) {
+    document.getElementById('row-ship').style.display=''
+    document.getElementById('v-ship').textContent=thMoney(doc.shipping)
   } else {
-    document.getElementById('shipping-remark').textContent = '* ค่าจัดส่งรวมอยู่ในราคาสินค้าแล้ว'
+    document.getElementById('v-shipnote').textContent='* ค่าจัดส่งรวมอยู่ในราคาสินค้าแล้ว'
   }
-  document.getElementById('view-total').textContent = money(d.total)
-
-  // Notes
-  if (d.notes) {
-    document.getElementById('notes-sec').style.display = ''
-    document.getElementById('view-notes').textContent   = d.notes
-  }
-
-  // Footer
-  document.getElementById('footer-type').textContent = type.en
-  document.getElementById('footer-info').textContent = `${d.doc_number} · บริษัท คัง ปั้ง วัสดุก่อสร้าง จำกัด`
-
-  // Watermark
-  if (d.status === 'cancelled') document.getElementById('watermark').style.display = ''
+  document.getElementById('v-total').textContent = thMoney(doc.total)
+  if (doc.notes) { document.getElementById('notes-sec').style.display=''; document.getElementById('v-notes').textContent=doc.notes }
+  document.getElementById('ft-type').textContent = t.en
+  document.getElementById('ft-info').textContent = `${doc.doc_number} · บริษัท คัง ปั้ง วัสดุก่อสร้าง จำกัด`
+  if (doc.status==='cancelled') document.getElementById('watermark').style.display=''
 }
 
-async function loadRefDoc(refId) {
-  const { data } = await sb.from('documents').select('doc_number').eq('id',refId).single()
-  if (data) document.getElementById('view-ref-doc').textContent = data.doc_number
-}
+/* ══════════════════════════════════════
+   SIGNATURE — INLINE PAD
+   Bug fix: canvas internal buffer (canvas.width/height)
+   MUST be set in pixels. CSS dimensions only affect display scale.
+   Setting CSS width:100% without setting canvas.width = blank canvas!
+══════════════════════════════════════ */
+let padCtx=null, padDrawing=false, padHasMark=false
 
-/* ==================== LOGO ==================== */
-function handleLogoUpload(e) {
-  const file = e.target.files[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = (ev) => {
-    applyLogo(ev.target.result)
-    localStorage.setItem('kb_logo', ev.target.result)
-    showToast('บันทึกโลโก้เรียบร้อย ✓')
-  }
-  reader.readAsDataURL(file)
-}
-
-function applyLogo(src) {
-  const img      = document.getElementById('logo-img')
-  const fallback = document.getElementById('logo-fallback')
-  img.src = src
-  img.style.display = 'block'
-  fallback.style.display = 'none'
-}
-
-/* ==================== INLINE SIGNATURE (on doc) ==================== */
-let inlineSigCtx = null, inlineSigDrawing = false, inlineHasStrokes = false
-
-function initInlineSig() {
-  const wrap   = document.getElementById('sig-canvas-wrap')
+function initPad() {
+  const wrap   = document.getElementById('sig-pad')
   const canvas = document.getElementById('sig-canvas')
-  const ph     = document.getElementById('sig-placeholder')
+  const hint   = document.getElementById('sig-hint')
 
-  // Size canvas to match display size
-  function resizeCanvas() {
-    canvas.width  = wrap.offsetWidth
-    canvas.height = wrap.offsetHeight
-  }
-  resizeCanvas()
+  // ★ CRITICAL: read layout size AFTER paint, set buffer to exact pixels
+  const W = wrap.clientWidth  || 240
+  const H = wrap.clientHeight || 90
+  canvas.width  = W  // drawing buffer width
+  canvas.height = H  // drawing buffer height
+  // also set style so it fills wrapper (position:absolute)
+  canvas.style.width  = W + 'px'
+  canvas.style.height = H + 'px'
 
-  inlineSigCtx = canvas.getContext('2d')
-  inlineSigCtx.lineWidth   = 1.8
-  inlineSigCtx.lineCap     = 'round'
-  inlineSigCtx.lineJoin    = 'round'
-  inlineSigCtx.strokeStyle = '#0d3320'
+  padCtx = canvas.getContext('2d')
+  padCtx.strokeStyle = '#0c2d17'
+  padCtx.lineWidth   = 2
+  padCtx.lineCap     = 'round'
+  padCtx.lineJoin    = 'round'
 
-  const getPos = (e) => {
+  function coords(e) {
     const r = canvas.getBoundingClientRect()
-    const src = e.touches ? e.touches[0] : e
-    return { x: (src.clientX - r.left) * (canvas.width / r.width),
-             y: (src.clientY - r.top)  * (canvas.height / r.height) }
+    const s = e.touches ? e.touches[0] : e
+    // scale: canvas buffer vs displayed size
+    return {
+      x: (s.clientX - r.left) * (canvas.width  / r.width),
+      y: (s.clientY - r.top)  * (canvas.height / r.height)
+    }
   }
 
-  canvas.addEventListener('mousedown',  (e)=>{ inlineSigDrawing=true; inlineSigCtx.beginPath(); const p=getPos(e); inlineSigCtx.moveTo(p.x,p.y); ph.style.display='none'; inlineHasStrokes=true; })
-  canvas.addEventListener('mousemove',  (e)=>{ if(!inlineSigDrawing) return; const p=getPos(e); inlineSigCtx.lineTo(p.x,p.y); inlineSigCtx.stroke(); })
-  canvas.addEventListener('mouseup',    ()=>{ inlineSigDrawing=false; })
-  canvas.addEventListener('mouseleave', ()=>{ inlineSigDrawing=false; })
-  canvas.addEventListener('touchstart', (e)=>{ e.preventDefault(); inlineSigDrawing=true; inlineSigCtx.beginPath(); const p=getPos(e); inlineSigCtx.moveTo(p.x,p.y); ph.style.display='none'; inlineHasStrokes=true; }, {passive:false})
-  canvas.addEventListener('touchmove',  (e)=>{ e.preventDefault(); if(!inlineSigDrawing) return; const p=getPos(e); inlineSigCtx.lineTo(p.x,p.y); inlineSigCtx.stroke(); }, {passive:false})
-  canvas.addEventListener('touchend',   ()=>{ inlineSigDrawing=false; })
+  canvas.addEventListener('mousedown', e => {
+    e.preventDefault(); padDrawing=true; padHasMark=true
+    hint.style.display='none'
+    const p=coords(e); padCtx.beginPath(); padCtx.moveTo(p.x,p.y)
+  })
+  canvas.addEventListener('mousemove', e => {
+    if(!padDrawing) return
+    const p=coords(e); padCtx.lineTo(p.x,p.y); padCtx.stroke()
+  })
+  canvas.addEventListener('mouseup',    ()=>{ padDrawing=false })
+  canvas.addEventListener('mouseleave', ()=>{ padDrawing=false })
+  canvas.addEventListener('touchstart', e=>{
+    e.preventDefault(); padDrawing=true; padHasMark=true
+    hint.style.display='none'
+    const p=coords(e); padCtx.beginPath(); padCtx.moveTo(p.x,p.y)
+  },{passive:false})
+  canvas.addEventListener('touchmove', e=>{
+    e.preventDefault(); if(!padDrawing) return
+    const p=coords(e); padCtx.lineTo(p.x,p.y); padCtx.stroke()
+  },{passive:false})
+  canvas.addEventListener('touchend', ()=>{ padDrawing=false })
 }
 
-function clearSignature() {
-  const canvas = document.getElementById('sig-canvas')
-  if (inlineSigCtx) inlineSigCtx.clearRect(0,0,canvas.width,canvas.height)
-  inlineHasStrokes = false
-  document.getElementById('sig-placeholder').style.display = 'flex'
-  // Also clear saved
-  document.getElementById('sig-saved-img').style.display = 'none'
-  document.getElementById('sig-canvas-wrap').style.display = 'block'
-  document.getElementById('sig-signed-badge').style.display = 'none'
-  document.getElementById('sig-actions').style.display = 'flex'
-  if (currentDocId) localStorage.removeItem('kb_sig_' + currentDocId)
+function clearSig() {
+  if(padCtx) { const c=document.getElementById('sig-canvas'); padCtx.clearRect(0,0,c.width,c.height) }
+  padHasMark=false
+  document.getElementById('sig-hint').style.display='flex'
+  document.getElementById('sig-img').style.display='none'
+  document.getElementById('sig-badge').style.display='none'
+  document.getElementById('sig-pad').style.display='block'
+  document.getElementById('sig-ctls').style.display='flex'
+  localStorage.removeItem('kb_sig_'+docId)
+  initPad()  // re-init fresh canvas
 }
 
-function saveSignature() {
-  const canvas = document.getElementById('sig-canvas')
-  if (!inlineHasStrokes) { showToast('กรุณาเซ็นชื่อก่อนบันทึก','error'); return }
-  const dataUrl = canvas.toDataURL('image/png')
-  applySignatureImage(dataUrl)
-  if (currentDocId) localStorage.setItem('kb_sig_' + currentDocId, dataUrl)
-  showToast('บันทึกลายเซ็นเรียบร้อย ✓')
+function saveSig() {
+  if(!padHasMark) { toast('กรุณาเซ็นชื่อก่อนยืนยัน','err'); return }
+  const url = document.getElementById('sig-canvas').toDataURL('image/png')
+  showSavedSig(url)
+  localStorage.setItem('kb_sig_'+docId, url)
+  toast('บันทึกลายเซ็นเรียบร้อย ✓')
 }
 
-function applySignatureImage(src) {
-  const img    = document.getElementById('sig-saved-img')
-  const wrap   = document.getElementById('sig-canvas-wrap')
-  const badge  = document.getElementById('sig-signed-badge')
-  const actions= document.getElementById('sig-actions')
-  img.src = src
-  img.style.display  = 'block'
-  wrap.style.display = 'none'
-  badge.style.display = 'inline-flex'
-  actions.style.display = 'none'
+function showSavedSig(src) {
+  document.getElementById('sig-pad').style.display='none'
+  document.getElementById('sig-ctls').style.display='none'
+  const img=document.getElementById('sig-img'); img.src=src; img.style.display='block'
+  document.getElementById('sig-badge').style.display='inline-flex'
 }
 
-/* ==================== SIGNATURE MODAL ==================== */
-let modalCtx = null, modalDrawing = false, modalHasStrokes = false
+/* ── SIGNATURE MODAL ──────────────────────── */
+let mCtx=null, mDrawing=false, mMark=false
 
 function openSigModal() {
-  const modal   = document.getElementById('sig-modal')
-  const wrap    = document.getElementById('modal-canvas-wrap')
-  const canvas  = document.getElementById('modal-sig-canvas')
-  modal.style.display = 'flex'
+  document.getElementById('sig-modal').style.display='flex'
+  requestAnimationFrame(()=>{
+    const wrap   = document.getElementById('modal-pad')
+    const hint   = document.getElementById('modal-pad-hint')
+    const W = wrap.clientWidth  || 460
+    const H = wrap.clientHeight || 200
 
-  setTimeout(() => {
-    canvas.width  = wrap.offsetWidth
-    canvas.height = wrap.offsetHeight
+    // Replace old canvas to drop stale event listeners
+    const old = document.getElementById('modal-canvas')
+    const cv  = document.createElement('canvas')
+    cv.id     = 'modal-canvas'
+    cv.width  = W; cv.height = H
+    cv.style.position='absolute'; cv.style.top='0'; cv.style.left='0'
+    cv.style.width=W+'px'; cv.style.height=H+'px'
+    cv.style.cursor='crosshair'; cv.style.touchAction='none'
+    wrap.replaceChild(cv, old)
 
-    modalCtx = canvas.getContext('2d')
-    modalCtx.lineWidth   = 2
-    modalCtx.lineCap     = 'round'
-    modalCtx.lineJoin    = 'round'
-    modalCtx.strokeStyle = '#0d3320'
-    modalHasStrokes = false
+    mCtx = cv.getContext('2d')
+    mCtx.strokeStyle='#0c2d17'; mCtx.lineWidth=2.2
+    mCtx.lineCap='round'; mCtx.lineJoin='round'
+    mMark=false; hint.style.display='flex'
 
-    const getPos = (e) => {
-      const r = canvas.getBoundingClientRect()
-      const src = e.touches ? e.touches[0] : e
-      return { x: (src.clientX - r.left) * (canvas.width / r.width),
-               y: (src.clientY - r.top)  * (canvas.height / r.height) }
+    function coords(e) {
+      const r=cv.getBoundingClientRect(); const s=e.touches?e.touches[0]:e
+      return { x:(s.clientX-r.left)*(cv.width/r.width), y:(s.clientY-r.top)*(cv.height/r.height) }
     }
-
-    // Remove old listeners by cloning
-    const newCanvas = canvas.cloneNode(true)
-    wrap.replaceChild(newCanvas, canvas)
-
-    const ctx2 = newCanvas.getContext('2d')
-    ctx2.lineWidth = 2; ctx2.lineCap = 'round'; ctx2.lineJoin = 'round'; ctx2.strokeStyle = '#0d3320'
-    modalCtx = ctx2
-
-    newCanvas.addEventListener('mousedown',  (e)=>{ modalDrawing=true; ctx2.beginPath(); const p=getPos(e); ctx2.moveTo(p.x,p.y); document.getElementById('modal-placeholder').style.display='none'; modalHasStrokes=true; })
-    newCanvas.addEventListener('mousemove',  (e)=>{ if(!modalDrawing) return; const p=getPos(e); ctx2.lineTo(p.x,p.y); ctx2.stroke(); })
-    newCanvas.addEventListener('mouseup',    ()=>{ modalDrawing=false; })
-    newCanvas.addEventListener('mouseleave', ()=>{ modalDrawing=false; })
-    newCanvas.addEventListener('touchstart', (e)=>{ e.preventDefault(); modalDrawing=true; ctx2.beginPath(); const p=getPos(e); ctx2.moveTo(p.x,p.y); document.getElementById('modal-placeholder').style.display='none'; modalHasStrokes=true; }, {passive:false})
-    newCanvas.addEventListener('touchmove',  (e)=>{ e.preventDefault(); if(!modalDrawing) return; const p=getPos(e); ctx2.lineTo(p.x,p.y); ctx2.stroke(); }, {passive:false})
-    newCanvas.addEventListener('touchend',   ()=>{ modalDrawing=false; })
-  }, 50)
+    cv.addEventListener('mousedown', e=>{ e.preventDefault(); mDrawing=true; mMark=true; hint.style.display='none'; const p=coords(e); mCtx.beginPath(); mCtx.moveTo(p.x,p.y) })
+    cv.addEventListener('mousemove', e=>{ if(!mDrawing) return; const p=coords(e); mCtx.lineTo(p.x,p.y); mCtx.stroke() })
+    cv.addEventListener('mouseup',    ()=>{ mDrawing=false })
+    cv.addEventListener('mouseleave', ()=>{ mDrawing=false })
+    cv.addEventListener('touchstart', e=>{ e.preventDefault(); mDrawing=true; mMark=true; hint.style.display='none'; const p=coords(e); mCtx.beginPath(); mCtx.moveTo(p.x,p.y) },{passive:false})
+    cv.addEventListener('touchmove',  e=>{ e.preventDefault(); if(!mDrawing) return; const p=coords(e); mCtx.lineTo(p.x,p.y); mCtx.stroke() },{passive:false})
+    cv.addEventListener('touchend', ()=>{ mDrawing=false })
+  })
 }
 
 function clearModalSig() {
-  const wrap = document.getElementById('modal-canvas-wrap')
-  const canvas = wrap.querySelector('canvas')
-  if (canvas && modalCtx) modalCtx.clearRect(0,0,canvas.width,canvas.height)
-  modalHasStrokes = false
-  document.getElementById('modal-placeholder').style.display = 'flex'
+  const cv=document.getElementById('modal-canvas')
+  if(mCtx&&cv) mCtx.clearRect(0,0,cv.width,cv.height)
+  mMark=false; document.getElementById('modal-pad-hint').style.display='flex'
 }
 
 function applyModalSig() {
-  if (!modalHasStrokes) { showToast('กรุณาเซ็นชื่อก่อน','error'); return }
-  const canvas  = document.getElementById('modal-canvas-wrap').querySelector('canvas')
-  const dataUrl = canvas.toDataURL('image/png')
-  closeSigModal()
-  applySignatureImage(dataUrl)
-  if (currentDocId) localStorage.setItem('kb_sig_' + currentDocId, dataUrl)
-  showToast('บันทึกลายเซ็นเรียบร้อย ✓')
+  if(!mMark) { toast('กรุณาเซ็นชื่อก่อน','err'); return }
+  const url = document.getElementById('modal-canvas').toDataURL('image/png')
+  closeSigModal(); showSavedSig(url)
+  localStorage.setItem('kb_sig_'+docId, url)
+  toast('บันทึกลายเซ็นเรียบร้อย ✓')
 }
 
-function closeSigModal() {
-  document.getElementById('sig-modal').style.display = 'none'
+function closeSigModal() { document.getElementById('sig-modal').style.display='none' }
+document.getElementById('sig-modal').addEventListener('click', e=>{ if(e.target===document.getElementById('sig-modal')) closeSigModal() })
+
+/* ── STATUS ───────────────────────────────── */
+function toggleDD() { document.getElementById('dd-panel').classList.toggle('open') }
+document.addEventListener('click', e=>{ if(!e.target.closest('.dd-wrap')) document.getElementById('dd-panel').classList.remove('open') })
+async function setStatus(s) {
+  document.getElementById('dd-panel').classList.remove('open')
+  await sb.from('documents').update({status:s}).eq('id',docId)
+  doc.status=s; render(); toast('เปลี่ยนสถานะเรียบร้อย ✓')
 }
 
-// Close modal on backdrop click
-document.getElementById('sig-modal').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('sig-modal')) closeSigModal()
-})
+/* ── ACTIONS ──────────────────────────────── */
+function editDoc() { location.href=`document-new.html?id=${docId}` }
 
-/* ==================== ACTIONS ==================== */
-function editDoc() { window.location.href = `document-new.html?id=${currentDocId}` }
-
-function toggleDD() { document.getElementById('dd-status').style.display = document.getElementById('dd-status').style.display === 'block' ? 'none' : 'block' }
-document.addEventListener('click', (e)=>{ if (!e.target.closest('.dd-wrap')) document.getElementById('dd-status').style.display = 'none' })
-
-async function changeStatus(s) {
-  document.getElementById('dd-status').style.display = 'none'
-  const { error } = await sb.from('documents').update({ status:s }).eq('id', currentDocId)
-  if (error) { showToast('เกิดข้อผิดพลาด','error'); return }
-  currentDoc.status = s
-  renderDoc()
-  showToast('เปลี่ยนสถานะเรียบร้อย ✓')
-}
-
-async function saveAsImage() {
-  showToast('กำลังสร้างรูปภาพ...','info')
-  // Hide no-print elements temporarily
-  document.querySelectorAll('.no-print').forEach(el => el.setAttribute('data-hide','1') || (el.style.visibility='hidden'))
+async function saveImg() {
+  toast('กำลังสร้างรูปภาพ...','info')
+  const els=[...document.querySelectorAll('.no-print')]
+  els.forEach(el=>el.style.visibility='hidden')
   try {
-    const canvas = await html2canvas(document.getElementById('document-card'), {
-      scale: 2.5,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      allowTaint: true,
+    const cv = await html2canvas(document.getElementById('doc-card'),{
+      scale:2.5, useCORS:true, allowTaint:true, backgroundColor:'#fff', logging:false
     })
-    const link = document.createElement('a')
-    link.download = `${currentDoc?.doc_number || 'document'}.png`
-    link.href = canvas.toDataURL('image/png')
-    link.click()
-    showToast('บันทึกรูปภาพเรียบร้อย ✓')
-  } catch(e) {
-    showToast('ไม่สามารถบันทึกได้: ' + e.message,'error')
-  } finally {
-    document.querySelectorAll('[data-hide]').forEach(el => { el.style.visibility=''; el.removeAttribute('data-hide') })
-  }
+    const a=document.createElement('a')
+    a.download=`${doc?.doc_number||'document'}.png`
+    a.href=cv.toDataURL('image/png'); a.click()
+    toast('บันทึกรูปภาพเรียบร้อย ✓')
+  } catch(e) { toast('ไม่สามารถบันทึกได้','err') }
+  finally { els.forEach(el=>el.style.visibility='') }
 }
 
 function printDoc() { window.print() }
+async function logout() { await sb.auth.signOut(); location.href='index.html' }
 
-async function logout() { await sb.auth.signOut(); window.location.href = 'index.html' }
-
-/* ==================== TOAST ==================== */
-function showToast(msg, type='success') {
-  const toast = document.getElementById('toast')
-  const colors = { success:'#166534', error:'#dc2626', info:'#1d4ed8' }
-  toast.style.background = colors[type]||colors.success
-  toast.textContent = msg
-  toast.classList.remove('hidden')
-  clearTimeout(toast._t)
-  toast._t = setTimeout(()=> toast.classList.add('hidden'), 3000)
+/* ── TOAST ────────────────────────────────── */
+function toast(msg,type='ok') {
+  const el=document.getElementById('toast')
+  el.style.background = type==='err'?'#dc2626':type==='info'?'#1d4ed8':'#166534'
+  el.textContent=msg; el.classList.remove('hidden')
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.add('hidden'),3000)
 }
 
 init()
