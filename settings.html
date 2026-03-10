@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ตั้งค่าโปรไฟล์ — Kang Bang</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  body { font-family: 'Sarabun', sans-serif; }
+  .logo-drop { transition: border-color 0.2s, background 0.2s; }
+  .logo-drop:hover { border-color: #16a34a; background: #f0fdf4; }
+  .logo-drop.drag-over { border-color: #16a34a; background: #dcfce7; }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- Navbar -->
+<nav class="bg-green-800 text-white shadow-lg sticky top-0 z-10">
+  <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <a href="dashboard.html" class="text-green-300 hover:text-white transition text-sm">← กลับ</a>
+      <span class="text-green-500">|</span>
+      <span class="text-2xl">👍</span>
+      <span class="font-bold">Kang Bang</span>
+    </div>
+    <button onclick="logout()" class="text-sm bg-green-700 hover:bg-green-600 px-3 py-1.5 rounded-lg transition">ออกจากระบบ</button>
+  </div>
+</nav>
+
+<div class="max-w-3xl mx-auto px-4 py-8">
+
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-800">ตั้งค่าโปรไฟล์</h1>
+    <p class="text-gray-500 text-sm mt-1">ข้อมูลนี้จะแสดงในเอกสารที่คุณสร้าง — แต่ละคนตั้งค่าได้อิสระ</p>
+  </div>
+
+  <!-- Alert -->
+  <div id="alert" class="hidden mb-6 px-4 py-3 rounded-xl text-sm font-medium"></div>
+
+  <div class="space-y-6">
+
+    <!-- ═══ LOGO SECTION ═══ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-2">
+        <span class="text-lg">🖼️</span>
+        <h2 class="font-bold text-gray-800">โลโก้บริษัท</h2>
+      </div>
+      <div class="px-6 py-6">
+        <div class="flex flex-col sm:flex-row gap-6 items-start">
+
+          <!-- Logo Preview -->
+          <div class="flex-shrink-0">
+            <div id="logo-preview-wrap"
+              class="w-32 h-28 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden relative cursor-pointer logo-drop"
+              onclick="document.getElementById('logo-file').click()"
+              ondragover="handleDragOver(event)"
+              ondragleave="handleDragLeave(event)"
+              ondrop="handleDrop(event)">
+              <img id="logo-preview" src="" alt="logo preview" class="w-full h-full object-contain hidden"/>
+              <div id="logo-placeholder" class="flex flex-col items-center gap-1 text-center px-3">
+                <span class="text-3xl">🏢</span>
+                <span class="text-xs text-gray-400">คลิกหรือลากรูปมาวาง</span>
+              </div>
+            </div>
+            <p class="text-xs text-gray-400 mt-2 text-center">PNG, JPG ≤ 2MB</p>
+          </div>
+
+          <div class="flex-1">
+            <p class="text-sm text-gray-600 mb-3">โลโก้จะแสดงในส่วนหัวของเอกสารทุกชนิด<br/>แนะนำภาพสี่เหลี่ยมหรือพื้นโปร่งใส (PNG)</p>
+            <div class="flex gap-3 flex-wrap">
+              <button onclick="document.getElementById('logo-file').click()"
+                class="flex items-center gap-2 px-4 py-2 bg-green-700 text-white rounded-xl text-sm font-medium hover:bg-green-800 transition">
+                📤 เลือกรูปโลโก้
+              </button>
+              <button id="logo-remove-btn" onclick="removeLogo()" style="display:none;"
+                class="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-500 rounded-xl text-sm font-medium hover:bg-red-50 transition">
+                🗑️ ลบโลโก้
+              </button>
+            </div>
+            <input type="file" id="logo-file" accept="image/*" class="hidden" onchange="handleLogoFile(event)"/>
+            <!-- Upload progress -->
+            <div id="upload-progress" class="hidden mt-3">
+              <div class="flex items-center gap-2 text-sm text-green-700">
+                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                </svg>
+                กำลังอัปโหลดโลโก้...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ CONTACT SECTION ═══ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-2">
+        <span class="text-lg">📞</span>
+        <h2 class="font-bold text-gray-800">ข้อมูลติดต่อส่วนตัว</h2>
+        <span class="text-xs text-gray-400 ml-1">(แสดงในเอกสารของคุณ)</span>
+      </div>
+      <div class="px-6 py-6 space-y-4">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1.5">
+              เบอร์โทรศัพท์ <span class="text-red-400">*</span>
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">📞</span>
+              <input id="f-phone" type="tel" placeholder="เช่น 063-4465622"
+                class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"/>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1.5">
+              อีเมลติดต่อ
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">✉️</span>
+              <input id="f-email" type="email" placeholder="เช่น yourname@gmail.com"
+                class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"/>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1.5">ชื่อผู้ออกเอกสาร / ตำแหน่ง</label>
+          <input id="f-display-name" type="text" placeholder="เช่น สมชาย ใจดี (ฝ่ายขาย)"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"/>
+          <p class="text-xs text-gray-400 mt-1">แสดงใต้ลายเซ็นในเอกสาร</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ COMPANY INFO (read-only preview) ═══ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-2">
+        <span class="text-lg">🏢</span>
+        <h2 class="font-bold text-gray-800">ข้อมูลบริษัท</h2>
+        <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full ml-1">แก้ไขโดย Admin</span>
+      </div>
+      <div class="px-6 py-5">
+        <div class="bg-gray-50 rounded-xl p-4 text-sm text-gray-600 space-y-1.5">
+          <p class="font-semibold text-gray-800">บริษัท คัง ปั้ง วัสดุก่อสร้าง จำกัด</p>
+          <p>28/101 หมู่ที่ 19 ตำบลบางพลีใหญ่ อำเภอบางพลี จังหวัดสมุทรปราการ 10540</p>
+          <p>เลขประจำตัวผู้เสียภาษีอากร: 0 1155 66014 56 8</p>
+        </div>
+        <p class="text-xs text-gray-400 mt-3">ติดต่อผู้ดูแลระบบหากต้องการแก้ไขข้อมูลบริษัท</p>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="flex justify-end gap-3 pb-4">
+      <a href="dashboard.html"
+        class="px-6 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
+        ยกเลิก
+      </a>
+      <button onclick="saveProfile()"
+        class="flex items-center gap-2 px-8 py-2.5 bg-green-700 text-white rounded-xl text-sm font-semibold hover:bg-green-800 transition shadow-sm">
+        <span id="save-btn-text">💾 บันทึกการตั้งค่า</span>
+        <svg id="save-spin" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ─── SUPABASE ─────────────────────────── */
+const SB_URL = 'https://ygdcbkhaqsaiyymxvrph.supabase.co'
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnZGNia2hhcXNhaXl5bXh2cnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzY4NTMsImV4cCI6MjA4ODYxMjg1M30.1quRttxAsp4b9471rdUh0zkdx97tfK9pW__0Bh3RWY0'
+const { createClient } = supabase
+const sb = createClient(SB_URL, SB_KEY)
+
+let currentUser = null
+let pendingLogoFile = null   // File object waiting to be uploaded on save
+let currentLogoUrl = null    // Existing logo URL from DB
+
+/* ─── INIT ────────────────────────────── */
+async function init() {
+  const { data:{ session } } = await sb.auth.getSession()
+  if (!session) { location.href='index.html'; return }
+  currentUser = session.user
+  await loadProfile()
+}
+
+async function loadProfile() {
+  const { data } = await sb.from('user_profiles')
+    .select('*').eq('user_id', currentUser.id).single()
+
+  if (data) {
+    document.getElementById('f-phone').value        = data.phone        || ''
+    document.getElementById('f-email').value        = data.contact_email || currentUser.email || ''
+    document.getElementById('f-display-name').value = data.display_name || ''
+    if (data.logo_url) {
+      currentLogoUrl = data.logo_url
+      setLogoPreview(data.logo_url)
+    }
+  } else {
+    // Pre-fill email from auth
+    document.getElementById('f-email').value = currentUser.email || ''
+  }
+}
+
+/* ─── LOGO HANDLING ───────────────────── */
+function handleLogoFile(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  if (file.size > 2 * 1024 * 1024) { showAlert('ไฟล์ใหญ่เกิน 2MB', 'error'); return }
+  pendingLogoFile = file
+  const url = URL.createObjectURL(file)
+  setLogoPreview(url)
+}
+
+function handleDragOver(e) {
+  e.preventDefault()
+  document.getElementById('logo-preview-wrap').classList.add('drag-over')
+}
+function handleDragLeave(e) {
+  document.getElementById('logo-preview-wrap').classList.remove('drag-over')
+}
+function handleDrop(e) {
+  e.preventDefault()
+  document.getElementById('logo-preview-wrap').classList.remove('drag-over')
+  const file = e.dataTransfer.files[0]
+  if (!file || !file.type.startsWith('image/')) return
+  if (file.size > 2 * 1024 * 1024) { showAlert('ไฟล์ใหญ่เกิน 2MB', 'error'); return }
+  pendingLogoFile = file
+  setLogoPreview(URL.createObjectURL(file))
+}
+
+function setLogoPreview(src) {
+  const img  = document.getElementById('logo-preview')
+  const ph   = document.getElementById('logo-placeholder')
+  const rmBtn= document.getElementById('logo-remove-btn')
+  img.src    = src
+  img.classList.remove('hidden')
+  ph.style.display = 'none'
+  rmBtn.style.display = ''
+}
+
+function removeLogo() {
+  pendingLogoFile = null
+  currentLogoUrl  = null
+  const img  = document.getElementById('logo-preview')
+  const ph   = document.getElementById('logo-placeholder')
+  const rmBtn= document.getElementById('logo-remove-btn')
+  img.src = ''; img.classList.add('hidden')
+  ph.style.display = ''
+  rmBtn.style.display = 'none'
+  document.getElementById('logo-file').value = ''
+}
+
+/* ─── UPLOAD LOGO to Supabase Storage ── */
+async function uploadLogo(file, userId) {
+  document.getElementById('upload-progress').classList.remove('hidden')
+  const ext  = file.name.split('.').pop()
+  const path = `logos/${userId}.${ext}`
+  // upsert = overwrite if exists
+  const { error } = await sb.storage.from('company-assets').upload(path, file, {
+    upsert: true, contentType: file.type
+  })
+  document.getElementById('upload-progress').classList.add('hidden')
+  if (error) throw error
+  const { data } = sb.storage.from('company-assets').getPublicUrl(path)
+  // Add cache-bust so browser reloads updated logo
+  return data.publicUrl + '?t=' + Date.now()
+}
+
+/* ─── SAVE PROFILE ────────────────────── */
+async function saveProfile() {
+  const phone       = document.getElementById('f-phone').value.trim()
+  const email       = document.getElementById('f-email').value.trim()
+  const displayName = document.getElementById('f-display-name').value.trim()
+
+  if (!phone) { showAlert('กรุณากรอกเบอร์โทรศัพท์', 'error'); return }
+
+  setSaving(true)
+
+  try {
+    let logoUrl = currentLogoUrl  // keep existing
+
+    // Upload new logo if selected
+    if (pendingLogoFile) {
+      logoUrl = await uploadLogo(pendingLogoFile, currentUser.id)
+      pendingLogoFile = null
+      currentLogoUrl  = logoUrl
+    } else if (currentLogoUrl === null) {
+      // User clicked "ลบโลโก้"
+      logoUrl = null
+    }
+
+    const payload = {
+      user_id:       currentUser.id,
+      phone,
+      contact_email: email || null,
+      display_name:  displayName || null,
+      logo_url:      logoUrl,
+      updated_at:    new Date().toISOString()
+    }
+
+    // Upsert: insert if not exists, update if exists
+    const { error } = await sb.from('user_profiles')
+      .upsert(payload, { onConflict: 'user_id' })
+
+    if (error) throw error
+    showAlert('บันทึกการตั้งค่าเรียบร้อยแล้ว ✓', 'success')
+
+  } catch(err) {
+    console.error(err)
+    showAlert('เกิดข้อผิดพลาด: ' + err.message, 'error')
+  } finally {
+    setSaving(false)
+  }
+}
+
+function setSaving(on) {
+  document.getElementById('save-btn-text').textContent = on ? 'กำลังบันทึก...' : '💾 บันทึกการตั้งค่า'
+  document.getElementById('save-spin').classList.toggle('hidden', !on)
+}
+
+/* ─── HELPERS ─────────────────────────── */
+function showAlert(msg, type='success') {
+  const el = document.getElementById('alert')
+  el.className = `mb-6 px-4 py-3 rounded-xl text-sm font-medium ${
+    type==='error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'
+  }`
+  el.textContent = msg
+  el.classList.remove('hidden')
+  clearTimeout(el._t)
+  if (type !== 'error') el._t = setTimeout(()=>el.classList.add('hidden'), 4000)
+}
+
+async function logout() {
+  await sb.auth.signOut(); location.href='index.html'
+}
+
+init()
+</script>
+</body>
+</html>
