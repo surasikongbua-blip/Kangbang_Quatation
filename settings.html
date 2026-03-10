@@ -9,9 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
   body { font-family: 'Sarabun', sans-serif; }
-  .logo-drop { transition: border-color 0.2s, background 0.2s; }
-  .logo-drop:hover { border-color: #16a34a; background: #f0fdf4; }
-  .logo-drop.drag-over { border-color: #16a34a; background: #dcfce7; }
+
 </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -49,48 +47,13 @@
         <h2 class="font-bold text-gray-800">โลโก้บริษัท</h2>
       </div>
       <div class="px-6 py-6">
-        <div class="flex flex-col sm:flex-row gap-6 items-start">
-
-          <!-- Logo Preview -->
-          <div class="flex-shrink-0">
-            <div id="logo-preview-wrap"
-              class="w-32 h-28 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden relative cursor-pointer logo-drop"
-              onclick="document.getElementById('logo-file').click()"
-              ondragover="handleDragOver(event)"
-              ondragleave="handleDragLeave(event)"
-              ondrop="handleDrop(event)">
-              <img id="logo-preview" src="" alt="logo preview" class="w-full h-full object-contain hidden"/>
-              <div id="logo-placeholder" class="flex flex-col items-center gap-1 text-center px-3">
-                <span class="text-3xl">🏢</span>
-                <span class="text-xs text-gray-400">คลิกหรือลากรูปมาวาง</span>
-              </div>
-            </div>
-            <p class="text-xs text-gray-400 mt-2 text-center">PNG, JPG ≤ 2MB</p>
+        <div class="flex items-center gap-4">
+          <div class="w-32 h-28 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden">
+            <img src="https://ygdcbkhaqsaiyymxvrph.supabase.co/storage/v1/object/public/company-assets/logos/46adc746-1a88-4361-a833-9e2a73a111ad.png" alt="logo" class="w-full h-full object-contain"/>
           </div>
-
-          <div class="flex-1">
-            <p class="text-sm text-gray-600 mb-3">โลโก้จะแสดงในส่วนหัวของเอกสารทุกชนิด<br/>แนะนำภาพสี่เหลี่ยมหรือพื้นโปร่งใส (PNG)</p>
-            <div class="flex gap-3 flex-wrap">
-              <button onclick="document.getElementById('logo-file').click()"
-                class="flex items-center gap-2 px-4 py-2 bg-green-700 text-white rounded-xl text-sm font-medium hover:bg-green-800 transition">
-                📤 เลือกรูปโลโก้
-              </button>
-              <button id="logo-remove-btn" onclick="removeLogo()" style="display:none;"
-                class="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-500 rounded-xl text-sm font-medium hover:bg-red-50 transition">
-                🗑️ ลบโลโก้
-              </button>
-            </div>
-            <input type="file" id="logo-file" accept="image/*" class="hidden" onchange="handleLogoFile(event)"/>
-            <!-- Upload progress -->
-            <div id="upload-progress" class="hidden mt-3">
-              <div class="flex items-center gap-2 text-sm text-green-700">
-                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
-                </svg>
-                กำลังอัปโหลดโลโก้...
-              </div>
-            </div>
+          <div>
+            <p class="text-sm text-gray-600 font-medium">โลโก้บริษัท Kang Bang</p>
+            <p class="text-xs text-gray-400 mt-1">โลโก้ถูกกำหนดโดยระบบ</p>
           </div>
         </div>
       </div>
@@ -182,9 +145,7 @@ const { createClient } = supabase
 const sb = createClient(SB_URL, SB_KEY)
 
 let currentUser = null
-let pendingLogoFile = null   // File object waiting to be uploaded on save
-let currentLogoUrl = null    // Existing logo URL from DB
-
+let 
 /* ─── INIT ────────────────────────────── */
 async function init() {
   const { data:{ session } } = await sb.auth.getSession()
@@ -202,8 +163,7 @@ async function loadProfile() {
     document.getElementById('f-email').value        = data.contact_email || currentUser.email || ''
     document.getElementById('f-display-name').value = data.display_name || ''
     if (data.logo_url) {
-      currentLogoUrl = data.logo_url
-      setLogoPreview(data.logo_url)
+            setLogoPreview(data.logo_url)
     }
   } else {
     // Pre-fill email from auth
@@ -216,27 +176,12 @@ function handleLogoFile(e) {
   const file = e.target.files[0]
   if (!file) return
   if (file.size > 2 * 1024 * 1024) { showAlert('ไฟล์ใหญ่เกิน 2MB', 'error'); return }
-  pendingLogoFile = file
-  const url = URL.createObjectURL(file)
+    const url = URL.createObjectURL(file)
   setLogoPreview(url)
 }
 
-function handleDragOver(e) {
-  e.preventDefault()
-  document.getElementById('logo-preview-wrap').classList.add('drag-over')
-}
-function handleDragLeave(e) {
-  document.getElementById('logo-preview-wrap').classList.remove('drag-over')
-}
-function handleDrop(e) {
-  e.preventDefault()
-  document.getElementById('logo-preview-wrap').classList.remove('drag-over')
-  const file = e.dataTransfer.files[0]
-  if (!file || !file.type.startsWith('image/')) return
-  if (file.size > 2 * 1024 * 1024) { showAlert('ไฟล์ใหญ่เกิน 2MB', 'error'); return }
-  pendingLogoFile = file
-  setLogoPreview(URL.createObjectURL(file))
-}
+
+
 
 function setLogoPreview(src) {
   const img  = document.getElementById('logo-preview')
@@ -248,35 +193,9 @@ function setLogoPreview(src) {
   rmBtn.style.display = ''
 }
 
-function removeLogo() {
-  pendingLogoFile = null
-  currentLogoUrl  = null
-  const img  = document.getElementById('logo-preview')
-  const ph   = document.getElementById('logo-placeholder')
-  const rmBtn= document.getElementById('logo-remove-btn')
-  img.src = ''; img.classList.add('hidden')
-  ph.style.display = ''
-  rmBtn.style.display = 'none'
-  document.getElementById('logo-file').value = ''
-}
 
-/* ─── UPLOAD LOGO to Supabase Storage ── */
-async function uploadLogo(file, userId) {
-  document.getElementById('upload-progress').classList.remove('hidden')
-  const ext  = file.name.split('.').pop()
-  const path = `logos/${userId}.${ext}`
-  // upsert = overwrite if exists
-  const { error } = await sb.storage.from('company-assets').upload(path, file, {
-    upsert: true, contentType: file.type
-  })
-  document.getElementById('upload-progress').classList.add('hidden')
-  if (error) throw error
-  const { data } = sb.storage.from('company-assets').getPublicUrl(path)
-  // Add cache-bust so browser reloads updated logo
-  return data.publicUrl + '?t=' + Date.now()
-}
 
-/* ─── SAVE PROFILE ────────────────────── */
+
 async function saveProfile() {
   const phone       = document.getElementById('f-phone').value.trim()
   const email       = document.getElementById('f-email').value.trim()
@@ -290,13 +209,6 @@ async function saveProfile() {
     let logoUrl = currentLogoUrl  // keep existing
 
     // Upload new logo if selected
-    if (pendingLogoFile) {
-      logoUrl = await uploadLogo(pendingLogoFile, currentUser.id)
-      pendingLogoFile = null
-      currentLogoUrl  = logoUrl
-    } else if (currentLogoUrl === null) {
-      // User clicked "ลบโลโก้"
-      logoUrl = null
     }
 
     const payload = {
