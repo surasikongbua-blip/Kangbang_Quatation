@@ -258,6 +258,7 @@
 
       const { data } = await sb.from('products').select('*').order('code')
       allProducts = data || []
+      console.log('[DEBUG] allProducts loaded:', allProducts.length, allProducts)
 
       await loadQuotations()
 
@@ -576,6 +577,7 @@
     function onCodeInput(idx, input) {
       const q = input.value.toLowerCase().trim()
       currentAutocompleteRow = idx
+      console.log('[DEBUG] onCodeInput called idx='+idx+' q='+q+' products='+allProducts.length)
 
       const dd = document.getElementById('autocomplete-dropdown')
       if (!q) { dd.classList.add('hidden'); return }
