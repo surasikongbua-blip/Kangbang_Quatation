@@ -112,10 +112,18 @@
           <input id="customer-name" type="text" placeholder="ชื่อ-นามสกุล หรือชื่อบริษัท"
             class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
         </div>
-        <div>
+        <div class="relative">
           <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">เบอร์โทร <span class="text-red-500">*</span></label>
-          <input id="customer-phone" type="tel" placeholder="0XX-XXX-XXXX"
-            class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
+          <div class="relative">
+            <input id="customer-phone" type="tel" placeholder="0XX-XXX-XXXX"
+              class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 pr-9"
+              oninput="onPhoneInput(this)"
+              onfocus="onPhoneInput(this)"
+              onblur="setTimeout(closeCustomerAutocomplete, 150)"
+              autocomplete="off"/>
+            <span id="customer-found-badge" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-sm font-bold" title="พบลูกค้าในระบบ">✓</span>
+          </div>
+          <p id="customer-hint" class="text-xs text-gray-400 mt-1 hidden">พบลูกค้าในระบบ — กรอกข้อมูลอัตโนมัติแล้ว</p>
         </div>
         <div class="sm:col-span-2">
           <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">ที่อยู่</label>
@@ -231,8 +239,11 @@
     </div>
   </div>
 
-  <!-- Autocomplete Dropdown -->
+  <!-- Product Autocomplete Dropdown -->
   <div id="autocomplete-dropdown" class="hidden fixed z-50 bg-white border border-gray-200 rounded-2xl shadow-xl autocomplete-list" style="width:300px;"></div>
+
+  <!-- Customer Autocomplete Dropdown -->
+  <div id="customer-autocomplete-dropdown" class="hidden fixed z-50 bg-white border border-gray-200 rounded-2xl shadow-xl autocomplete-list" style="width:320px;max-height:260px;overflow-y:auto;"></div>
 
   <script>
     const SUPABASE_URL = 'https://ygdcbkhaqsaiyymxvrph.supabase.co'
@@ -241,6 +252,7 @@
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
     let allProducts = []
+    let allCustomers = []  // ฐานลูกค้าของ user นี้
     let items = []
     let editDocId = null
     let currentAutocompleteRow = null
@@ -258,6 +270,10 @@
 
       const { data } = await sb.from('products').select('*').order('code')
       allProducts = data || []
+
+      // โหลดฐานลูกค้าของ user นี้
+      const { data: custData } = await sb.from('customers').select('*').order('name')
+      allCustomers = custData || []
 
       await loadQuotations()
 
@@ -665,6 +681,94 @@
       }
     })
 
+    // ==================== CUSTOMER AUTOCOMPLETE ====================
+    let _custMouseDown = false
+
+    function onPhoneInput(input) {
+      const q = input.value.trim()
+      const dd = document.getElementById('customer-autocomplete-dropdown')
+
+      if (!q) { dd.classList.add('hidden'); return }
+
+      // ค้นหาจากเบอร์โทรและชื่อ
+      const matches = allCustomers.filter(c =>
+        c.phone.includes(q) || c.name.toLowerCase().includes(q.toLowerCase())
+      ).slice(0, 8)
+
+      if (!matches.length) { dd.classList.add('hidden'); return }
+
+      const rect = input.getBoundingClientRect()
+      const ddWidth = Math.min(320, window.innerWidth - 16)
+      const spaceBelow = window.innerHeight - rect.bottom
+      const estHeight = Math.min(matches.length * 68, 260)
+
+      dd.style.left  = `${Math.max(4, Math.min(rect.left, window.innerWidth - ddWidth - 8))}px`
+      dd.style.width = `${ddWidth}px`
+      dd.style.top   = spaceBelow < estHeight + 8
+        ? `${rect.top - estHeight - 4}px`
+        : `${rect.bottom + 4}px`
+
+      dd.classList.remove('hidden')
+      dd.innerHTML = matches.map(c => `
+        <div class="px-4 py-3 cursor-pointer border-b border-gray-50 last:border-0 hover:bg-green-50 transition select-none"
+          data-cust-id="${c.id}" style="user-select:none">
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-xs font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded">${escHtml(c.phone)}</span>
+          </div>
+          <div class="text-sm font-semibold text-gray-800 mt-0.5">${escHtml(c.name)}</div>
+          ${c.address ? `<div class="text-xs text-gray-400 mt-0.5 truncate">${escHtml(c.address)}</div>` : ''}
+        </div>`).join('')
+
+      // Event handling
+      dd.onmousedown = e => { _custMouseDown = true; e.preventDefault() }
+      dd.onclick = e => {
+        const item = e.target.closest('[data-cust-id]')
+        _custMouseDown = false
+        if (item) { fillCustomerById(item.dataset.custId); dd.classList.add('hidden') }
+      }
+      dd.ontouchstart = () => { _custMouseDown = true }
+      dd.ontouchend = e => {
+        const item = e.target.closest('[data-cust-id]')
+        _custMouseDown = false
+        if (item) { e.preventDefault(); fillCustomerById(item.dataset.custId); dd.classList.add('hidden') }
+      }
+    }
+
+    function fillCustomerById(id) {
+      const c = allCustomers.find(x => x.id === id)
+      if (!c) return
+      document.getElementById('customer-phone').value   = c.phone
+      document.getElementById('customer-name').value    = c.name
+      document.getElementById('customer-address').value = c.address || ''
+      document.getElementById('customer-email').value   = c.email   || ''
+      document.getElementById('customer-tax').value     = c.tax_id  || ''
+      // แสดง badge + hint
+      document.getElementById('customer-found-badge').classList.remove('hidden')
+      document.getElementById('customer-hint').classList.remove('hidden')
+    }
+
+    function closeCustomerAutocomplete() {
+      if (_custMouseDown) return
+      document.getElementById('customer-autocomplete-dropdown').classList.add('hidden')
+      // ถ้าเบอร์ตรงกับในฐานข้อมูลพอดี ให้ fill อัตโนมัติ
+      const phone = document.getElementById('customer-phone').value.trim()
+      if (phone) {
+        const exact = allCustomers.find(c => c.phone === phone)
+        if (exact) fillCustomerById(exact.id)
+      }
+    }
+
+    // เมื่อ customer-phone เปลี่ยน ให้ซ่อน badge
+    document.addEventListener('DOMContentLoaded', () => {
+      const phoneInput = document.getElementById('customer-phone')
+      if (phoneInput) {
+        phoneInput.addEventListener('input', () => {
+          document.getElementById('customer-found-badge').classList.add('hidden')
+          document.getElementById('customer-hint').classList.add('hidden')
+        })
+      }
+    })
+
     // ==================== CALC ====================
     function calcTotal() {
       const subtotal = items.reduce((s, i) => s + (i.total_price || 0), 0)
@@ -721,6 +825,20 @@
             if (np) { item.product_id = np.id; allProducts.push(np) }
           }
         }
+      }
+
+      // ── บันทึก/อัปเดตลูกค้าอัตโนมัติ ──
+      if (custPhone) {
+        const custPayload = {
+          user_id: session.user.id,
+          phone:   custPhone,
+          name:    custName,
+          address: document.getElementById('customer-address').value || null,
+          email:   document.getElementById('customer-email').value   || null,
+          tax_id:  document.getElementById('customer-tax').value     || null,
+          updated_at: new Date().toISOString(),
+        }
+        await sb.from('customers').upsert(custPayload, { onConflict: 'user_id,phone' })
       }
 
       const subtotal   = items.reduce((s, i) => s + (i.total_price || 0), 0)
