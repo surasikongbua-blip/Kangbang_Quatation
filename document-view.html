@@ -444,15 +444,16 @@
             <tr>
               <th style="width:36px;">#</th>
               <th>รหัส</th>
-              <th style="min-width:200px;">รายการสินค้า</th>
+              <th style="min-width:180px;">รายการสินค้า</th>
               <th style="width:60px;">หน่วย</th>
               <th style="width:70px;">จำนวน</th>
-              <th style="width:110px;">ราคา/หน่วย</th>
-              <th style="width:120px;">ยอดรวม</th>
+              <th style="width:100px;">ราคา/หน่วย</th>
+              <th style="width:90px;" id="col-discount-header">ส่วนลด</th>
+              <th style="width:110px;">ยอดรวม</th>
             </tr>
           </thead>
           <tbody id="items-tbody">
-            <tr><td colspan="7" style="text-align:center;padding:20px;color:#a0b8ae;">กำลังโหลด...</td></tr>
+            <tr><td colspan="8" style="text-align:center;padding:20px;color:#a0b8ae;">กำลังโหลด...</td></tr>
           </tbody>
         </table>
         <!-- Totals -->
@@ -462,9 +463,17 @@
               <span class="total-label">ยอดรวม</span>
               <span class="total-value" id="t-subtotal">—</span>
             </div>
+            <div class="total-row" id="t-disc-before-row" style="display:none;">
+              <span class="total-label" style="color:#d97706;">ส่วนลดก่อน VAT</span>
+              <span class="total-value" id="t-disc-before" style="color:#d97706;">—</span>
+            </div>
             <div class="total-row" id="t-vat-row">
               <span class="total-label" id="t-vat-label">VAT 7%</span>
               <span class="total-value" id="t-vat">—</span>
+            </div>
+            <div class="total-row" id="t-disc-after-row" style="display:none;">
+              <span class="total-label" style="color:#d97706;">ส่วนลดหลัง VAT</span>
+              <span class="total-value" id="t-disc-after" style="color:#d97706;">—</span>
             </div>
             <div class="total-row" id="t-shipping-row">
               <span class="total-label">ค่าขนส่ง</span>
@@ -615,8 +624,11 @@
 
     // Items
     const tbody = document.getElementById('items-tbody')
+    const hasItemDiscount = items.some(i => (i.discount || 0) > 0)
+    // Hide discount column header if none of the items have discount
+    document.getElementById('col-discount-header').style.display = hasItemDiscount ? '' : 'none'
     if (!items.length) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:#a0b8ae;">ไม่มีรายการสินค้า</td></tr>`
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:#a0b8ae;">ไม่มีรายการสินค้า</td></tr>`
     } else {
       tbody.innerHTML = items.map((item, i) => `
         <tr>
@@ -629,17 +641,28 @@
           <td class="item-num">${item.unit || '—'}</td>
           <td class="item-num">${Number(item.quantity).toLocaleString('th-TH')}</td>
           <td class="item-num">${fmt(item.unit_price)}</td>
+          <td class="item-num" style="color:#d97706;display:${hasItemDiscount ? '' : 'none'};">
+            ${(item.discount || 0) > 0 ? '-' + fmt(item.discount) : '—'}
+          </td>
           <td class="item-num" style="font-weight:600;">${fmt(item.total_price)}</td>
         </tr>`).join('')
     }
 
     // Totals
     document.getElementById('t-subtotal').textContent = fmt(doc.subtotal)
+    if ((doc.discount_before_vat || 0) > 0) {
+      document.getElementById('t-disc-before').textContent = '-' + fmt(doc.discount_before_vat)
+      document.getElementById('t-disc-before-row').style.display = ''
+    }
     if (doc.vat_percent > 0) {
       document.getElementById('t-vat-label').textContent = `VAT ${doc.vat_percent}%`
       document.getElementById('t-vat').textContent = fmt(doc.vat_amount)
     } else {
       document.getElementById('t-vat-row').style.display = 'none'
+    }
+    if ((doc.discount_after_vat || 0) > 0) {
+      document.getElementById('t-disc-after').textContent = '-' + fmt(doc.discount_after_vat)
+      document.getElementById('t-disc-after-row').style.display = ''
     }
     if (doc.shipping > 0) {
       document.getElementById('t-shipping').textContent = fmt(doc.shipping)
