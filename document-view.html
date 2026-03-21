@@ -372,9 +372,6 @@
       .items-table thead tr { background: #1a5c38 !important; }
       .total-row.grand { background: #1a5c38 !important; }
       .sig-clear-btn, #sig-modal, #mobile-hint, #zoom-controls { display: none !important; }
-      /* Reset mobile scale transform so print is full A4 */
-      #document-paper { transform: none !important; }
-      #page-wrap { min-height: unset !important; overflow: visible !important; }
     }
   </style>
 </head>
@@ -888,21 +885,12 @@
   /* ── MOBILE ZOOM ── */
   let currentScale = 1.0
   const A4_W = 794
-  const A4_H = 1123 // A4 height in px at 96dpi
 
   function applyZoom() {
     if (window.innerWidth >= 640) return
     const paper = document.getElementById('document-paper')
-    const wrap = document.getElementById('page-wrap')
-
-    paper.style.transform = `scale(${currentScale})`
-    paper.style.transformOrigin = 'top left'
-    // When scaling down, the element still occupies original space.
-    // Compensate by setting explicit width/height on wrap so no gap.
-    const scaledW = A4_W * currentScale
-    const scaledH = paper.scrollHeight * currentScale
-    wrap.style.width = scaledW + 'px'
-    wrap.style.height = (scaledH + 120) + 'px' // 120 = toolbar + bottom padding
+    // CSS zoom shrinks the element AND its layout space — no wrap hacks needed
+    paper.style.zoom = currentScale
     document.getElementById('zoom-label').textContent = Math.round(currentScale * 100) + '%'
   }
 
@@ -915,13 +903,19 @@
 
   function initZoom() {
     if (window.innerWidth < 640) {
-      // Fit A4 width to screen width
       currentScale = Math.floor((window.innerWidth / A4_W) * 10) / 10
       if (currentScale < 0.3) currentScale = 0.3
-      // Small delay to let document render first so scrollHeight is correct
-      setTimeout(applyZoom, 300)
+      setTimeout(applyZoom, 200)
     }
   }
+
+  // Reset zoom before print so A4 renders at full size
+  window.addEventListener('beforeprint', () => {
+    document.getElementById('document-paper').style.zoom = 1
+  })
+  window.addEventListener('afterprint', () => {
+    if (window.innerWidth < 640) applyZoom()
+  })
 
   init()
   initZoom()
