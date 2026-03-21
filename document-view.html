@@ -36,11 +36,7 @@
     }
     .toolbar-row2::-webkit-scrollbar { display: none; }
     .toolbar-brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; font-size: 16px; }
-    .toolbar-brand a {
-      color: #86efac; font-size: 15px; font-weight: 600; text-decoration: none;
-      padding: 8px 12px 8px 4px; /* larger touch target */
-      display: inline-flex; align-items: center; gap: 4px;
-    }
+    .toolbar-brand a { color: #86efac; font-size: 13px; font-weight: 400; text-decoration: none; }
     .toolbar-brand a:hover { color: #fff; }
     .btn-tool {
       display: flex; align-items: center; gap: 5px; flex-shrink: 0;
@@ -294,7 +290,7 @@
 
     /* ── PRINT STYLES ── */
     @media print {
-      @page { size: A4 portrait; margin: 18mm 20mm; }
+      @page { size: A4 portrait; margin: 10mm 12mm; }
       html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
       #toolbar, #page-actions-bar, .no-print { display: none !important; }
       #page-wrap { 
