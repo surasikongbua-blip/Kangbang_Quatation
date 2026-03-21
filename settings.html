@@ -145,7 +145,7 @@ const { createClient } = supabase
 const sb = createClient(SB_URL, SB_KEY)
 
 let currentUser = null
-let 
+let currentLogoUrl = null
 /* ─── INIT ────────────────────────────── */
 async function init() {
   const { data:{ session } } = await sb.auth.getSession()
@@ -162,9 +162,7 @@ async function loadProfile() {
     document.getElementById('f-phone').value        = data.phone        || ''
     document.getElementById('f-email').value        = data.contact_email || currentUser.email || ''
     document.getElementById('f-display-name').value = data.display_name || ''
-    if (data.logo_url) {
-            setLogoPreview(data.logo_url)
-    }
+    currentLogoUrl = data.logo_url || null
   } else {
     // Pre-fill email from auth
     document.getElementById('f-email').value = currentUser.email || ''
@@ -207,9 +205,6 @@ async function saveProfile() {
 
   try {
     let logoUrl = currentLogoUrl  // keep existing
-
-    // Upload new logo if selected
-    }
 
     const payload = {
       user_id:       currentUser.id,
