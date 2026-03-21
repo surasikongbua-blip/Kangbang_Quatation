@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"/>
   <title>ดูเอกสาร — Kang Bang</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -279,11 +279,73 @@
     .btn-apply-sig { padding: 8px 20px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
     .btn-apply-sig:hover { background: var(--accent); }
 
+    /* ── MOBILE A4 VIEWER ── */
+    /* iPhone 6.1" (390px logical width) — show A4 at true proportions with pinch-zoom */
+    @media (max-width: 639px) {
+      body { background: #2a2a2a; }
+
+      #page-wrap {
+        padding: 106px 0 40px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        display: block;
+        min-height: 100vh;
+      }
+
+      /* A4 = 794px wide — center it, user can pinch to zoom */
+      #document-paper {
+        width: 794px;
+        margin: 0 auto;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      /* Hint bar at bottom */
+      #mobile-hint {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: rgba(0,0,0,.75);
+        color: #ccc;
+        font-size: 11px;
+        text-align: center;
+        padding: 6px 12px 10px;
+        z-index: 50;
+        font-family: 'Sarabun', sans-serif;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+      }
+
+      /* Toolbar buttons — slightly larger touch targets */
+      .btn-tool { padding: 9px 13px; font-size: 12px; }
+
+      /* Zoom controls */
+      #zoom-controls {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(255,255,255,.13);
+        border-radius: 8px;
+        padding: 2px 6px;
+        flex-shrink: 0;
+      }
+      #zoom-controls button {
+        background: none; border: none; color: #fff;
+        font-size: 18px; font-weight: 700; cursor: pointer;
+        padding: 2px 6px; line-height: 1;
+      }
+      #zoom-label { color: rgba(255,255,255,.85); font-size: 12px; font-weight: 600; min-width: 38px; text-align: center; }
+    }
+
+    /* Hide zoom controls on desktop */
+    @media (min-width: 640px) {
+      #zoom-controls { display: none; }
+      #mobile-hint { display: none; }
+    }
+
     /* ── FORCE COLORS EVERYWHERE ── */
     * {
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
-      color-adjust: exact !important;
     }
 
     /* ── PRINT STYLES ── */
@@ -330,6 +392,12 @@
     </div>
   </div>
   <div class="toolbar-row2 no-print">
+    <!-- Zoom controls — mobile only -->
+    <div id="zoom-controls">
+      <button onclick="zoomOut()">−</button>
+      <span id="zoom-label">100%</span>
+      <button onclick="zoomIn()">+</button>
+    </div>
     <button class="btn-tool btn-sign" onclick="openSigModal()">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
       เซ็นลายเซ็น
@@ -510,6 +578,9 @@
     </div><!-- /doc-body -->
   </div><!-- /document-paper -->
 </div><!-- /page-wrap -->
+
+<!-- Mobile hint -->
+<div id="mobile-hint">↔ เลื่อนซ้าย-ขวาเพื่อดูเอกสาร A4 · บีบ/ขยายนิ้วเพื่อ Zoom</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
@@ -810,7 +881,36 @@
   })
   document.getElementById('sig-buyer-box').addEventListener('click', () => openSigModal('buyer'))
 
+  /* ── MOBILE ZOOM ── */
+  let currentScale = 1.0
+  function applyZoom() {
+    const paper = document.getElementById('document-paper')
+    const wrap = document.getElementById('page-wrap')
+    if (window.innerWidth < 640) {
+      paper.style.transform = `scale(${currentScale})`
+      paper.style.transformOrigin = 'top center'
+      // Adjust wrap height so scroll works correctly
+      wrap.style.minHeight = (794 * 1.414 * currentScale + 150) + 'px'
+      document.getElementById('zoom-label').textContent = Math.round(currentScale * 100) + '%'
+    }
+  }
+  function zoomIn() {
+    if (currentScale < 2.0) { currentScale = Math.round((currentScale + 0.1) * 10) / 10; applyZoom() }
+  }
+  function zoomOut() {
+    if (currentScale > 0.3) { currentScale = Math.round((currentScale - 0.1) * 10) / 10; applyZoom() }
+  }
+  // Set default zoom to fit iPhone 6.1" (390px) width
+  function initZoom() {
+    if (window.innerWidth < 640) {
+      // 390px viewport / 794px A4 = ~0.49, use 0.5 for clean start
+      currentScale = Math.round((window.innerWidth / 794) * 10) / 10
+      applyZoom()
+    }
+  }
+
   init()
+  initZoom()
 </script>
 </body>
 </html>
