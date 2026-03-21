@@ -502,6 +502,8 @@
           <div class="sig-label" id="sig-seller-label">ผู้เสนอราคา / Authorized Signature</div>
           <div class="sig-name" id="sig-seller-name">—</div>
           <div class="sig-date" id="sig-seller-date">วันที่: ________</div>
+          <!-- badge แสดงหลัง save สำเร็จ -->
+          <div id="sig-saved-badge" class="hidden no-print" style="position:absolute;top:6px;left:6px;background:#22c55e;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;font-family:Sarabun,sans-serif;">✓ บันทึกแล้ว</div>
         </div>
         <!-- Right signature -->
         <div class="sig-box" id="sig-buyer-box">
@@ -598,6 +600,8 @@
 
   let docId = null
   let docData = null
+  let currentUserId = null
+  let currentProfile = {}
 
   /* ── INIT ── */
   async function init() {
@@ -607,6 +611,7 @@
 
     const { data: { session } } = await sb.auth.getSession()
     if (!session) { window.location.href = 'index.html'; return }
+    currentUserId = session.user.id
 
     // Load document + items + user profile in parallel
     const [docRes, itemsRes, profileRes] = await Promise.all([
@@ -623,10 +628,25 @@
 
     docData = docRes.data
     const items = itemsRes.data || []
-    const profile = profileRes.data || {}
+    currentProfile = profileRes.data || {}
 
-    renderDocument(docData, items, profile)
+    renderDocument(docData, items, currentProfile)
+    loadSavedSignature(currentProfile)
     document.getElementById('loading-overlay').style.display = 'none'
+  }
+
+  // โหลดลายเซ็นที่บันทึกไว้จาก profile มาแสดงบน canvas
+  function loadSavedSignature(profile) {
+    if (!profile.sig_seller) return
+    const canvas = document.getElementById('sig-canvas-seller')
+    const ctx = canvas.getContext('2d')
+    const img = new Image()
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      document.querySelector('#sig-seller-box .sig-clear-btn').style.display = ''
+    }
+    img.src = profile.sig_seller
   }
 
   /* ── RENDER ── */
@@ -847,22 +867,48 @@
     const dCtx = dest.getContext('2d')
     dCtx.clearRect(0, 0, dest.width, dest.height)
 
-    // Scale-fit the modal sig into the smaller canvas
     const tempImg = new Image()
-    tempImg.onload = () => {
+    tempImg.onload = async () => {
       dCtx.drawImage(tempImg, 0, 0, dest.width, dest.height)
-      // Show clear button
-      const box = sigTarget === 'seller' ? 'sig-seller-box' : null
-      if (box) document.querySelector(`#${box} .sig-clear-btn`).style.display = ''
+      // Show clear button (seller only)
+      if (sigTarget === 'seller') {
+        document.querySelector('#sig-seller-box .sig-clear-btn').style.display = ''
+        // Auto-save ลายเซ็นลง user_profiles
+        const base64 = dest.toDataURL('image/png')
+        await sb.from('user_profiles').upsert({
+          user_id: currentUserId,
+          sig_seller: base64,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' })
+        currentProfile.sig_seller = base64
+        showSigSavedBadge()
+      }
     }
     tempImg.src = src.toDataURL()
     closeSigModal()
   }
 
-  function clearSig(who) {
+  function showSigSavedBadge() {
+    const badge = document.getElementById('sig-saved-badge')
+    if (!badge) return
+    badge.classList.remove('hidden')
+    setTimeout(() => badge.classList.add('hidden'), 2500)
+  }
+
+  async function clearSig(who) {
     const id = who === 'seller' ? 'sig-canvas-seller' : 'sig-canvas-buyer'
     const canvas = document.getElementById(id)
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+    if (who === 'seller') {
+      document.querySelector('#sig-seller-box .sig-clear-btn').style.display = 'none'
+      // ลบลายเซ็นออกจาก DB ด้วย
+      await sb.from('user_profiles').upsert({
+        user_id: currentUserId,
+        sig_seller: null,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' })
+      currentProfile.sig_seller = null
+    }
   }
 
   /* ── SAVE AS IMAGE — A4 crisp render ── */
