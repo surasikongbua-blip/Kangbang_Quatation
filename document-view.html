@@ -486,18 +486,18 @@
 
       <!-- Signature Area -->
       <div class="signature-section">
-        <!-- Seller signature -->
+        <!-- Left signature -->
         <div class="sig-box" id="sig-seller-box">
           <canvas id="sig-canvas-seller" width="200" height="55" style="width:200px;height:55px;"></canvas>
           <button class="sig-clear-btn no-print" onclick="clearSig('seller')" title="ล้างลายเซ็น">✕ ล้าง</button>
-          <div class="sig-label">ผู้เสนอราคา / Authorized Signature</div>
+          <div class="sig-label" id="sig-seller-label">ผู้เสนอราคา / Authorized Signature</div>
           <div class="sig-name" id="sig-seller-name">—</div>
           <div class="sig-date" id="sig-seller-date">วันที่: ________</div>
         </div>
-        <!-- Customer signature -->
+        <!-- Right signature -->
         <div class="sig-box" id="sig-buyer-box">
           <canvas id="sig-canvas-buyer" width="200" height="55" style="width:200px;height:55px;"></canvas>
-          <div class="sig-label">ผู้รับเอกสาร / Received By</div>
+          <div class="sig-label" id="sig-buyer-label">ผู้รับเอกสาร / Received By</div>
           <div class="sig-name" id="sig-buyer-name" style="color:#8aaa98;">ลูกค้า</div>
           <div class="sig-date">วันที่: ________</div>
         </div>
@@ -654,7 +654,25 @@
       document.getElementById('notes-text').textContent = doc.notes
     }
 
-    // Signatures
+    // Signatures — labels depend on doc type
+    const SIG_LABELS = {
+      quotation: {
+        seller: 'ผู้เสนอราคา / Authorized Signature',
+        buyer:  'ผู้รับเอกสาร / Received By',
+      },
+      receipt: {
+        seller: 'ผู้รับเงิน / Cashier',
+        buyer:  'ผู้ชำระเงิน / Payer',
+      },
+      delivery: {
+        seller: 'ผู้ส่งสินค้า / Delivered By',
+        buyer:  'ผู้รับสินค้า / Received By',
+      },
+    }
+    const sigLabels = SIG_LABELS[doc.doc_type] || SIG_LABELS.quotation
+    document.getElementById('sig-seller-label').textContent = sigLabels.seller
+    document.getElementById('sig-buyer-label').textContent  = sigLabels.buyer
+
     const sellerName = profile.display_name || 'ผู้ออกเอกสาร'
     document.getElementById('sig-seller-name').textContent = sellerName
     document.getElementById('sig-seller-date').textContent = 'วันที่: ' + fmtDate(doc.issue_date)
