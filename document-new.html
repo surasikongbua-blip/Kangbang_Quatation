@@ -18,7 +18,7 @@
 
   <!-- Navbar -->
   <nav class="bg-green-800 text-white shadow-lg sticky top-0 z-20">
-    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <a href="dashboard.html" class="text-green-300 hover:text-white transition text-sm font-medium">← กลับ</a>
         <span class="text-green-500">|</span>
@@ -28,7 +28,7 @@
     </div>
   </nav>
 
-  <div class="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+  <div class="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
 
     <!-- Alert -->
     <div id="alert" class="hidden mb-4 px-4 py-3 rounded-xl text-sm font-medium"></div>
@@ -38,7 +38,7 @@
       <h2 class="font-bold text-gray-700 mb-4 flex items-center gap-2 text-base">
         <span>📄</span> ข้อมูลเอกสาร
       </h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
 
         <div>
           <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">ประเภทเอกสาร <span class="text-red-500">*</span></label>
@@ -106,7 +106,7 @@
       <h2 class="font-bold text-gray-700 mb-4 flex items-center gap-2 text-base">
         <span>👤</span> ข้อมูลลูกค้า
       </h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <div>
           <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">ชื่อลูกค้า <span class="text-red-500">*</span></label>
           <input id="customer-name" type="text" placeholder="ชื่อ-นามสกุล หรือชื่อบริษัท"
@@ -125,11 +125,6 @@
           </div>
           <p id="customer-hint" class="text-xs text-gray-400 mt-1 hidden">พบลูกค้าในระบบ — กรอกข้อมูลอัตโนมัติแล้ว</p>
         </div>
-        <div class="sm:col-span-2">
-          <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">ที่อยู่</label>
-          <textarea id="customer-address" rows="2" placeholder="ที่อยู่จัดส่ง"
-            class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"></textarea>
-        </div>
         <div>
           <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">อีเมล</label>
           <input id="customer-email" type="email" placeholder="example@email.com"
@@ -139,6 +134,11 @@
           <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">เลขผู้เสียภาษี</label>
           <input id="customer-tax" type="text" placeholder="0000000000000"
             class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
+        </div>
+        <div class="sm:col-span-2 lg:col-span-2">
+          <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">ที่อยู่</label>
+          <textarea id="customer-address" rows="2" placeholder="ที่อยู่จัดส่ง"
+            class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"></textarea>
         </div>
       </div>
     </div>
@@ -184,44 +184,76 @@
       <h2 class="font-bold text-gray-700 mb-4 flex items-center gap-2 text-base">
         <span>💰</span> ยอดเงิน
       </h2>
-      <div class="space-y-3 max-w-xs ml-auto">
-        <div class="flex justify-between items-center">
-          <span class="text-gray-600 text-sm">ยอดรวม</span>
-          <span id="subtotal-display" class="font-semibold text-gray-800">฿0.00</span>
+
+      <!-- Totals summary - right aligned -->
+      <div class="max-w-sm ml-auto space-y-2.5">
+
+        <!-- ยอดรวมสินค้า -->
+        <div class="flex justify-between items-center py-1">
+          <span class="text-gray-600 text-sm">ยอดรวมสินค้า</span>
+          <span id="subtotal-display" class="font-semibold text-gray-800 tabular-nums">฿0.00</span>
         </div>
-        <div class="flex justify-between items-center">
-          <span class="text-gray-600 text-sm text-orange-600">ส่วนลดก่อน VAT</span>
-          <input id="discount-before-vat" type="number" min="0" step="0.01" value="0" oninput="calcTotal()"
-            class="w-28 px-2 py-1.5 border border-orange-200 rounded-lg text-sm text-right focus:outline-none focus:ring-1 focus:ring-orange-400 bg-orange-50"/>
-        </div>
-        <div class="flex justify-between items-center">
+
+        <!-- VAT -->
+        <div class="flex justify-between items-center py-1">
           <div class="flex items-center gap-2">
             <span class="text-gray-600 text-sm">VAT</span>
-            <select id="vat-percent" onchange="calcTotal()"
+            <select id="vat-percent" onchange="onVatChange()"
               class="px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-green-500 bg-white">
               <option value="0" selected>ไม่มี VAT</option>
               <option value="7">7%</option>
             </select>
           </div>
-          <span id="vat-display" class="font-semibold text-gray-800">฿0.00</span>
+          <span id="vat-display" class="font-semibold text-gray-800 tabular-nums">฿0.00</span>
         </div>
-        <div class="flex justify-between items-center">
-          <span class="text-gray-600 text-sm text-orange-600">ส่วนลดหลัง VAT</span>
-          <input id="discount-after-vat" type="number" min="0" step="0.01" value="0" oninput="calcTotal()"
-            class="w-28 px-2 py-1.5 border border-orange-200 rounded-lg text-sm text-right focus:outline-none focus:ring-1 focus:ring-orange-400 bg-orange-50"/>
+
+        <!-- ส่วนลดก่อน VAT — ซ่อนถ้าไม่มี VAT -->
+        <div id="disc-before-wrap" class="hidden">
+          <div class="bg-orange-50 border border-orange-100 rounded-xl p-3 space-y-2">
+            <p class="text-xs font-bold text-orange-600 uppercase tracking-wide">ส่วนลดก่อน VAT</p>
+            <div id="disc-before-list" class="space-y-1.5"></div>
+            <button onclick="addDiscountRow('before')"
+              class="text-xs text-orange-500 hover:text-orange-700 font-semibold flex items-center gap-1 mt-1">
+              + เพิ่มรายการส่วนลด
+            </button>
+            <div class="flex justify-between items-center pt-1 border-t border-orange-200">
+              <span class="text-xs font-semibold text-orange-600">รวมส่วนลดก่อน VAT</span>
+              <span id="disc-before-total" class="text-sm font-bold text-orange-600 tabular-nums">-฿0.00</span>
+            </div>
+          </div>
         </div>
-        <div class="flex justify-between items-center">
+
+        <!-- ค่าขนส่ง -->
+        <div class="flex justify-between items-center py-1">
           <span class="text-gray-600 text-sm">ค่าขนส่ง</span>
           <input id="shipping" type="number" min="0" step="0.01" value="0" oninput="calcTotal()"
-            class="w-28 px-2 py-1.5 border border-gray-200 rounded-lg text-sm text-right focus:outline-none focus:ring-1 focus:ring-green-500"/>
+            class="w-32 px-2 py-1.5 border border-gray-200 rounded-lg text-sm text-right focus:outline-none focus:ring-1 focus:ring-green-500"/>
         </div>
+
+        <!-- ส่วนลดหลัง VAT -->
+        <div>
+          <div class="bg-orange-50 border border-orange-100 rounded-xl p-3 space-y-2">
+            <p class="text-xs font-bold text-orange-600 uppercase tracking-wide">ส่วนลดหลัง VAT</p>
+            <div id="disc-after-list" class="space-y-1.5"></div>
+            <button onclick="addDiscountRow('after')"
+              class="text-xs text-orange-500 hover:text-orange-700 font-semibold flex items-center gap-1 mt-1">
+              + เพิ่มรายการส่วนลด
+            </button>
+            <div class="flex justify-between items-center pt-1 border-t border-orange-200">
+              <span class="text-xs font-semibold text-orange-600">รวมส่วนลดหลัง VAT</span>
+              <span id="disc-after-total" class="text-sm font-bold text-orange-600 tabular-nums">-฿0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ยอดชำระรวม -->
         <div class="flex justify-between items-center pt-3 border-t-2 border-green-100">
-          <span class="font-bold text-gray-800">ยอดชำระรวม</span>
-          <span id="total-display" class="font-bold text-green-700 text-xl">฿0.00</span>
+          <span class="font-bold text-gray-800 text-base">ยอดชำระรวม</span>
+          <span id="total-display" class="font-bold text-green-700 text-xl tabular-nums">฿0.00</span>
         </div>
       </div>
 
-      <div class="mt-4 pt-4 border-t border-gray-100">
+      <div class="mt-5 pt-4 border-t border-gray-100">
         <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">หมายเหตุ</label>
         <textarea id="notes" rows="2" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"
           class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"></textarea>
@@ -343,14 +375,15 @@
         unit:         i.unit,
         quantity:     i.quantity,
         unit_price:   i.unit_price,
+        discMode: 'total', discPerUnit: i.quantity > 0 ? (i.discount||0)/i.quantity : 0,
         discount:     i.discount || 0,
         total_price:  i.total_price,
       }))
 
       // ดึง VAT และค่าขนส่ง
       document.getElementById('vat-percent').value         = doc.vat_percent || 0
-      document.getElementById('discount-before-vat').value = doc.discount_before_vat || 0
-      document.getElementById('discount-after-vat').value  = doc.discount_after_vat  || 0
+      loadDiscountRows('before', doc.discount_before_json)
+      loadDiscountRows('after',  doc.discount_after_json)
       document.getElementById('shipping').value            = doc.shipping || 0
 
       renderItems()
@@ -404,20 +437,50 @@
       document.getElementById('customer-email').value   = doc.customer_email || ''
       document.getElementById('customer-tax').value     = doc.customer_tax_id || ''
       document.getElementById('vat-percent').value      = doc.vat_percent
-      document.getElementById('discount-before-vat').value = doc.discount_before_vat || 0
-      document.getElementById('discount-after-vat').value  = doc.discount_after_vat  || 0
       document.getElementById('shipping').value         = doc.shipping
       document.getElementById('notes').value            = doc.notes || ''
       if (doc.ref_doc_id) document.getElementById('ref-doc').value = doc.ref_doc_id
+
+      // โหลดส่วนลดท้ายบิล
+      loadDiscountRows('before', doc.discount_before_json)
+      loadDiscountRows('after',  doc.discount_after_json)
 
       items = (docItems || []).map(i => ({
         id: i.id, product_id: i.product_id,
         product_code: i.product_code || '', product_name: i.product_name,
         description: i.description || '', unit: i.unit,
         quantity: i.quantity, unit_price: i.unit_price,
+        discMode: 'total', discPerUnit: i.quantity > 0 ? (i.discount||0)/i.quantity : 0,
         discount: i.discount || 0, total_price: i.total_price,
       }))
-      renderItems(); calcTotal(); onDocTypeChange()
+      renderItems(); onVatChange(); onDocTypeChange()
+    }
+
+    function loadDiscountRows(type, json) {
+      const arr    = type === 'before' ? discsBefore : discsAfter
+      const listId = type === 'before' ? 'disc-before-list' : 'disc-after-list'
+      // reset
+      arr.length = 0
+      document.getElementById(listId).innerHTML = ''
+      if (!json) return
+      let rows = []
+      try { rows = JSON.parse(json) } catch(e) { return }
+      rows.forEach(r => {
+        const idx = arr.length
+        arr.push({ label: r.label || '', amount: r.amount || 0 })
+        const row = document.createElement('div')
+        row.className = 'flex gap-1.5 items-center'
+        row.id = `disc-${type}-row-${idx}`
+        row.innerHTML = `
+          <input type="text" placeholder="รายละเอียดส่วนลด" value="${r.label||''}"
+            class="flex-1 px-2 py-1.5 border border-orange-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-orange-400 bg-white"
+            oninput="discsBefore_update('${type}',${idx},'label',this.value)"/>
+          <input type="number" min="0" step="0.01" value="${r.amount||0}" placeholder="0.00"
+            class="w-24 px-2 py-1.5 border border-orange-200 rounded-lg text-xs text-right focus:outline-none focus:ring-1 focus:ring-orange-400 bg-white"
+            oninput="discsBefore_update('${type}',${idx},'amount',parseFloat(this.value)||0)"/>
+          <button onclick="removeDiscountRow('${type}',${idx})" class="text-red-400 hover:text-red-600 text-lg leading-none px-1">&times;</button>`
+        document.getElementById(listId).appendChild(row)
+      })
     }
 
     // ==================== DOC TYPE ====================
@@ -430,7 +493,7 @@
 
     // ==================== ITEMS ====================
     function addItem() {
-      items.push({ product_id: null, product_code: '', product_name: '', description: '', unit: 'แผ่น', quantity: 1, unit_price: 0, discount: 0, total_price: 0 })
+      items.push({ product_id: null, product_code: '', product_name: '', description: '', unit: 'แผ่น', quantity: 1, unit_price: 0, discMode: 'unit', discPerUnit: 0, discount: 0, total_price: 0 })
       renderItems()
     }
 
@@ -482,10 +545,20 @@
                 class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm text-right focus:outline-none focus:ring-1 focus:ring-green-500"
                 oninput="updateItem(${idx}, 'unit_price', parseFloat(this.value)||0)"/>
             </td>
-            <td class="px-3 py-2">
-              <input type="number" value="${item.discount || 0}" min="0" step="0.01" data-field="discount" data-idx="${idx}"
-                class="w-full px-2 py-1.5 border border-orange-200 rounded-lg text-sm text-right focus:outline-none focus:ring-1 focus:ring-orange-400 bg-orange-50"
-                oninput="updateItem(${idx}, 'discount', parseFloat(this.value)||0)"/>
+            <td class="px-2 py-2">
+              <div class="flex flex-col gap-1">
+                <div class="flex rounded-lg overflow-hidden border border-orange-200 text-xs">
+                  <button id="disc-mode-unit-${idx}" onclick="setDiscMode(${idx},'unit')"
+                    class="flex-1 px-1.5 py-1 font-semibold transition ${(item.discMode||'unit')==='unit' ? 'bg-orange-400 text-white' : 'bg-orange-50 text-orange-500'}">ต่อชิ้น</button>
+                  <button id="disc-mode-total-${idx}" onclick="setDiscMode(${idx},'total')"
+                    class="flex-1 px-1.5 py-1 font-semibold transition ${(item.discMode||'unit')==='total' ? 'bg-orange-400 text-white' : 'bg-orange-50 text-orange-500'}">รวม</button>
+                </div>
+                <input type="number" id="disc-input-${idx}" value="${(item.discMode||'unit')==='unit' ? (item.discPerUnit||0) : (item.discount||0)}"
+                  min="0" step="0.01"
+                  class="w-full px-2 py-1 border border-orange-200 rounded-lg text-xs text-right focus:outline-none focus:ring-1 focus:ring-orange-400 bg-orange-50"
+                  placeholder="${(item.discMode||'unit')==='unit' ? 'ต่อชิ้น' : 'รวม'}"
+                  oninput="updateDiscountInput(${idx}, parseFloat(this.value)||0)"/>
+              </div>
             </td>
             <td class="px-3 py-2 text-right font-semibold text-gray-700 text-sm whitespace-nowrap" id="item-total-${idx}">
               ฿${Number(item.total_price).toLocaleString('th-TH', {minimumFractionDigits:2})}
@@ -554,11 +627,25 @@
                 <p class="font-bold text-green-700 text-sm py-2 pr-1" id="item-total-m-${idx}">฿${Number(item.total_price).toLocaleString('th-TH', {minimumFractionDigits:2})}</p>
               </div>
             </div>
-            <div class="mt-2 flex items-center gap-2 bg-orange-50 rounded-xl px-2.5 py-2 border border-orange-100">
-              <label class="text-xs text-orange-600 font-semibold whitespace-nowrap">ส่วนลดรายการ (฿)</label>
-              <input type="number" value="${item.discount || 0}" min="0" step="0.01" data-field="discount" data-idx="${idx}"
-                class="flex-1 px-2 py-1.5 border border-orange-200 rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
-                oninput="updateItem(${idx}, 'discount', parseFloat(this.value)||0)"/>
+            <div class="mt-2 bg-orange-50 rounded-xl px-3 py-2.5 border border-orange-100">
+              <div class="flex items-center justify-between mb-2">
+                <label class="text-xs text-orange-600 font-bold">ส่วนลดรายการ</label>
+                <div class="flex rounded-lg overflow-hidden border border-orange-200 text-xs">
+                  <button id="disc-mode-unit-m-${idx}" onclick="setDiscMode(${idx},'unit')"
+                    class="px-2.5 py-1 font-semibold transition ${(item.discMode||'unit')==='unit' ? 'bg-orange-400 text-white' : 'bg-white text-orange-500'}">ต่อชิ้น</button>
+                  <button id="disc-mode-total-m-${idx}" onclick="setDiscMode(${idx},'total')"
+                    class="px-2.5 py-1 font-semibold transition ${(item.discMode||'unit')==='total' ? 'bg-orange-400 text-white' : 'bg-white text-orange-500'}">รวม</button>
+                </div>
+              </div>
+              <input type="number" id="disc-input-m-${idx}"
+                value="${(item.discMode||'unit')==='unit' ? (item.discPerUnit||0) : (item.discount||0)}"
+                min="0" step="0.01"
+                class="w-full px-3 py-2 border border-orange-200 rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
+                placeholder="${(item.discMode||'unit')==='unit' ? 'ส่วนลดต่อชิ้น' : 'ส่วนลดรวม'}"
+                oninput="updateDiscountInput(${idx}, parseFloat(this.value)||0)"/>
+              <p class="text-xs text-orange-400 mt-1 text-right" id="disc-hint-m-${idx}">
+                ${(item.discMode||'unit')==='unit' && item.discPerUnit ? 'รวม: -฿' + Number(item.discount||0).toLocaleString('th-TH',{minimumFractionDigits:2}) : (item.discMode==='total' && item.discount ? 'ต่อชิ้น: -฿' + Number(item.discPerUnit||0).toLocaleString('th-TH',{minimumFractionDigits:2}) : '')}
+              </p>
             </div>
           </div>`).join('')
       }
@@ -566,21 +653,160 @@
 
     function updateItem(idx, field, value) {
       items[idx][field] = value
-      if (field === 'quantity' || field === 'unit_price' || field === 'discount') {
-        const gross = items[idx].quantity * items[idx].unit_price
-        items[idx].total_price = Math.max(0, gross - (items[idx].discount || 0))
-        // อัปเดตเฉพาะ cell ยอดรวม ไม่ต้อง re-render ทั้งหมด
-        const totalCellDesktop = document.getElementById(`item-total-${idx}`)
-        const totalCellMobile  = document.getElementById(`item-total-m-${idx}`)
-        const fmt = `฿${Number(items[idx].total_price).toLocaleString('th-TH', {minimumFractionDigits:2})}`
-        if (totalCellDesktop) totalCellDesktop.textContent = fmt
-        if (totalCellMobile)  totalCellMobile.textContent  = fmt
-        calcTotal()
+      if (field === 'quantity' || field === 'unit_price') {
+        // recalc discount total if mode=unit
+        if ((items[idx].discMode || 'unit') === 'unit') {
+          items[idx].discount = items[idx].quantity * (items[idx].discPerUnit || 0)
+        } else {
+          // mode=total: recalc discPerUnit
+          items[idx].discPerUnit = items[idx].quantity > 0 ? (items[idx].discount || 0) / items[idx].quantity : 0
+        }
+        recomputeItemTotal(idx)
+        refreshItemDiscDisplay(idx)
       }
-      // field อื่น (product_name, description, unit) — แค่เก็บค่า ไม่ re-render
     }
 
-    // ==================== AUTOCOMPLETE ====================
+    function setDiscMode(idx, mode) {
+      items[idx].discMode = mode
+      // sync value between modes
+      if (mode === 'unit') {
+        items[idx].discPerUnit = items[idx].quantity > 0 ? (items[idx].discount || 0) / items[idx].quantity : 0
+      } else {
+        items[idx].discount = items[idx].quantity * (items[idx].discPerUnit || 0)
+      }
+      refreshItemDiscDisplay(idx)
+      recomputeItemTotal(idx)
+    }
+
+    function updateDiscountInput(idx, value) {
+      const mode = items[idx].discMode || 'unit'
+      if (mode === 'unit') {
+        items[idx].discPerUnit = value
+        items[idx].discount    = items[idx].quantity * value
+      } else {
+        items[idx].discount    = value
+        items[idx].discPerUnit = items[idx].quantity > 0 ? value / items[idx].quantity : 0
+      }
+      recomputeItemTotal(idx)
+      refreshItemDiscDisplay(idx)
+    }
+
+    function recomputeItemTotal(idx) {
+      const gross = items[idx].quantity * items[idx].unit_price
+      items[idx].total_price = Math.max(0, gross - (items[idx].discount || 0))
+      const fmt = `฿${Number(items[idx].total_price).toLocaleString('th-TH', {minimumFractionDigits:2})}`
+      const td = document.getElementById(`item-total-${idx}`)
+      const pm = document.getElementById(`item-total-m-${idx}`)
+      if (td) td.textContent = fmt
+      if (pm) pm.textContent = fmt
+      calcTotal()
+    }
+
+    function refreshItemDiscDisplay(idx) {
+      const mode = items[idx].discMode || 'unit'
+      const perUnit = items[idx].discPerUnit || 0
+      const total   = items[idx].discount || 0
+      const fmtN = n => Number(n).toLocaleString('th-TH', {minimumFractionDigits:2})
+
+      // update toggle button styles
+      ;['','m-'].forEach(prefix => {
+        const btnUnit  = document.getElementById(`disc-mode-unit-${prefix}${idx}`)
+        const btnTotal = document.getElementById(`disc-mode-total-${prefix}${idx}`)
+        const inp      = document.getElementById(`disc-input-${prefix}${idx}`)
+        if (!btnUnit) return
+        const activeClass   = ['bg-orange-400','text-white']
+        const inactiveClass = ['bg-orange-50','text-orange-500']
+        if (mode === 'unit') {
+          btnUnit.classList.add(...activeClass);    btnUnit.classList.remove(...inactiveClass)
+          btnTotal.classList.remove(...activeClass); btnTotal.classList.add(...inactiveClass)
+          inp.value = perUnit || ''
+          inp.placeholder = 'ส่วนลดต่อชิ้น'
+        } else {
+          btnTotal.classList.add(...activeClass);   btnTotal.classList.remove(...inactiveClass)
+          btnUnit.classList.remove(...activeClass);  btnUnit.classList.add(...inactiveClass)
+          inp.value = total || ''
+          inp.placeholder = 'ส่วนลดรวม'
+        }
+      })
+      // hint label (mobile)
+      const hint = document.getElementById(`disc-hint-m-${idx}`)
+      if (hint) {
+        if (mode === 'unit' && perUnit > 0) hint.textContent = `รวม: -฿${fmtN(total)}`
+        else if (mode === 'total' && total > 0) hint.textContent = `ต่อชิ้น: -฿${fmtN(perUnit)}`
+        else hint.textContent = ''
+      }
+    }
+
+    // ─── ส่วนลดท้ายบิล (before/after) ───
+    let discsBefore = []   // [{label, amount}]
+    let discsAfter  = []
+
+    function addDiscountRow(type) {
+      const arr  = type === 'before' ? discsBefore : discsAfter
+      const listId = type === 'before' ? 'disc-before-list' : 'disc-after-list'
+      const idx  = arr.length
+      arr.push({ label: '', amount: 0 })
+      const row = document.createElement('div')
+      row.className = 'flex gap-1.5 items-center'
+      row.id = `disc-${type}-row-${idx}`
+      row.innerHTML = `
+        <input type="text" placeholder="รายละเอียดส่วนลด"
+          class="flex-1 px-2 py-1.5 border border-orange-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-orange-400 bg-white"
+          oninput="discsBefore_update('${type}',${idx},'label',this.value)"/>
+        <input type="number" min="0" step="0.01" placeholder="0.00"
+          class="w-24 px-2 py-1.5 border border-orange-200 rounded-lg text-xs text-right focus:outline-none focus:ring-1 focus:ring-orange-400 bg-white"
+          oninput="discsBefore_update('${type}',${idx},'amount',parseFloat(this.value)||0)"/>
+        <button onclick="removeDiscountRow('${type}',${idx})" class="text-red-400 hover:text-red-600 text-lg leading-none px-1">&times;</button>`
+      document.getElementById(listId).appendChild(row)
+    }
+
+    function discsBefore_update(type, idx, field, value) {
+      const arr = type === 'before' ? discsBefore : discsAfter
+      if (arr[idx]) arr[idx][field] = value
+      calcTotal()
+    }
+
+    function removeDiscountRow(type, idx) {
+      const arr    = type === 'before' ? discsBefore : discsAfter
+      const listId = type === 'before' ? 'disc-before-list' : 'disc-after-list'
+      arr.splice(idx, 1)
+      // re-render list
+      const list = document.getElementById(listId)
+      list.innerHTML = ''
+      const copy = [...arr]
+      if (type === 'before') discsBefore = []
+      else discsAfter = []
+      copy.forEach(() => addDiscountRow(type))
+      calcTotal()
+    }
+
+    function getDiscountTotal(arr) {
+      return arr.reduce((s, d) => s + (d.amount || 0), 0)
+    }
+
+    function onVatChange() {
+      const hasVat = parseFloat(document.getElementById('vat-percent').value) > 0
+      document.getElementById('disc-before-wrap').classList.toggle('hidden', !hasVat)
+      calcTotal()
+    }
+
+    // ==================== CALC ====================
+    function calcTotal() {
+      const subtotal    = items.reduce((s, i) => s + (i.total_price || 0), 0)
+      const discBefore  = getDiscountTotal(discsBefore)
+      const vatPct      = parseFloat(document.getElementById('vat-percent').value) || 0
+      const baseForVat  = Math.max(0, subtotal - discBefore)
+      const vatAmt      = baseForVat * vatPct / 100
+      const discAfter   = getDiscountTotal(discsAfter)
+      const shipping    = parseFloat(document.getElementById('shipping').value) || 0
+      const total       = Math.max(0, baseForVat + vatAmt + shipping - discAfter)
+      const fmt = n => `฿${Number(n).toLocaleString('th-TH', {minimumFractionDigits:2})}`
+      document.getElementById('subtotal-display').textContent = fmt(subtotal)
+      document.getElementById('vat-display').textContent      = fmt(vatAmt)
+      document.getElementById('total-display').textContent    = fmt(total)
+      document.getElementById('disc-before-total').textContent = discBefore > 0 ? `-${fmt(discBefore)}` : '-฿0.00'
+      document.getElementById('disc-after-total').textContent  = discAfter  > 0 ? `-${fmt(discAfter)}`  : '-฿0.00'
+    }
     let _acMouseDown = false  // ป้องกัน blur ปิด dropdown ก่อนที่ click จะทำงาน
 
     function setupDropdownListener() {
@@ -797,22 +1023,6 @@
       }
     })
 
-    // ==================== CALC ====================
-    function calcTotal() {
-      const subtotal       = items.reduce((s, i) => s + (i.total_price || 0), 0)
-      const discBefore     = parseFloat(document.getElementById('discount-before-vat').value) || 0
-      const vatPct         = parseFloat(document.getElementById('vat-percent').value) || 0
-      const baseForVat     = Math.max(0, subtotal - discBefore)
-      const vatAmt         = baseForVat * vatPct / 100
-      const discAfter      = parseFloat(document.getElementById('discount-after-vat').value) || 0
-      const shipping       = parseFloat(document.getElementById('shipping').value) || 0
-      const total          = Math.max(0, baseForVat + vatAmt - discAfter + shipping)
-      const fmt = n => `฿${Number(n).toLocaleString('th-TH', {minimumFractionDigits:2})}`
-      document.getElementById('subtotal-display').textContent = fmt(subtotal)
-      document.getElementById('vat-display').textContent      = fmt(vatAmt)
-      document.getElementById('total-display').textContent    = fmt(total)
-    }
-
     // ==================== SAVE ====================
     async function saveDoc(statusOverride) {
       const { data: { session } } = await sb.auth.getSession()
@@ -874,15 +1084,19 @@
 
       const subtotal       = items.reduce((s, i) => s + (i.total_price || 0), 0)
       const vatPct         = parseFloat(document.getElementById('vat-percent').value) || 0
-      const discBefore     = parseFloat(document.getElementById('discount-before-vat').value) || 0
+      const discBefore     = getDiscountTotal(discsBefore)
       const baseForVat     = Math.max(0, subtotal - discBefore)
       const vatAmt         = baseForVat * vatPct / 100
-      const discAfter      = parseFloat(document.getElementById('discount-after-vat').value) || 0
+      const discAfter      = getDiscountTotal(discsAfter)
       const shipping       = parseFloat(document.getElementById('shipping').value) || 0
-      const total          = Math.max(0, baseForVat + vatAmt - discAfter + shipping)
+      const total          = Math.max(0, baseForVat + vatAmt + shipping - discAfter)
       const refDoc     = document.getElementById('ref-doc').value || null
       const validUntil = document.getElementById('valid-until').value || null
       const finalStatus = statusOverride || document.getElementById('doc-status').value
+
+      // เก็บ label ส่วนลดเป็น JSON ใน notes_discount
+      const discBeforeJson = discsBefore.length ? JSON.stringify(discsBefore) : null
+      const discAfterJson  = discsAfter.length  ? JSON.stringify(discsAfter)  : null
 
       const docPayload = {
         doc_type: docType, doc_number: docNumber, status: finalStatus,
@@ -894,7 +1108,10 @@
         customer_email:   document.getElementById('customer-email').value || null,
         customer_tax_id:  document.getElementById('customer-tax').value || null,
         subtotal, vat_percent: vatPct, vat_amount: vatAmt,
-        discount_before_vat: discBefore, discount_after_vat: discAfter,
+        discount_before_vat: discBefore,
+        discount_after_vat: discAfter,
+        discount_before_json: discBeforeJson,
+        discount_after_json: discAfterJson,
         shipping, total,
         notes: document.getElementById('notes').value || null,
         created_by: session.user.id,
