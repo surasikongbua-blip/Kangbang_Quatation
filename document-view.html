@@ -463,22 +463,18 @@
               <span class="total-label">ยอดรวม</span>
               <span class="total-value" id="t-subtotal">—</span>
             </div>
-            <div class="total-row" id="t-disc-before-row" style="display:none;">
-              <span class="total-label" style="color:#d97706;">ส่วนลดก่อน VAT</span>
-              <span class="total-value" id="t-disc-before" style="color:#d97706;">—</span>
-            </div>
+            <!-- ส่วนลดก่อน VAT (dynamic rows) -->
+            <div id="t-disc-before-rows"></div>
             <div class="total-row" id="t-vat-row">
               <span class="total-label" id="t-vat-label">VAT 7%</span>
               <span class="total-value" id="t-vat">—</span>
-            </div>
-            <div class="total-row" id="t-disc-after-row" style="display:none;">
-              <span class="total-label" style="color:#d97706;">ส่วนลดหลัง VAT</span>
-              <span class="total-value" id="t-disc-after" style="color:#d97706;">—</span>
             </div>
             <div class="total-row" id="t-shipping-row">
               <span class="total-label">ค่าขนส่ง</span>
               <span class="total-value" id="t-shipping">—</span>
             </div>
+            <!-- ส่วนลดหลัง VAT (dynamic rows) -->
+            <div id="t-disc-after-rows"></div>
             <div class="total-row grand">
               <span class="total-label">ยอดสุทธิ</span>
               <span class="total-value" id="t-grand">—</span>
@@ -650,25 +646,51 @@
 
     // Totals
     document.getElementById('t-subtotal').textContent = fmt(doc.subtotal)
-    if ((doc.discount_before_vat || 0) > 0) {
-      document.getElementById('t-disc-before').textContent = '-' + fmt(doc.discount_before_vat)
-      document.getElementById('t-disc-before-row').style.display = ''
+
+    // ส่วนลดก่อน VAT — render rows with label
+    const discBeforeRows = document.getElementById('t-disc-before-rows')
+    discBeforeRows.innerHTML = ''
+    let discBeforeArr = []
+    try { discBeforeArr = doc.discount_before_json ? JSON.parse(doc.discount_before_json) : [] } catch(e) {}
+    if (!discBeforeArr.length && (doc.discount_before_vat || 0) > 0) {
+      discBeforeArr = [{ label: 'ส่วนลดก่อน VAT', amount: doc.discount_before_vat }]
     }
+    discBeforeArr.forEach(d => {
+      if (!d.amount) return
+      const row = document.createElement('div')
+      row.className = 'total-row'
+      row.innerHTML = `<span class="total-label" style="color:#d97706;">${d.label || 'ส่วนลด'}</span><span class="total-value" style="color:#d97706;">-${fmt(d.amount)}</span>`
+      discBeforeRows.appendChild(row)
+    })
+
     if (doc.vat_percent > 0) {
       document.getElementById('t-vat-label').textContent = `VAT ${doc.vat_percent}%`
       document.getElementById('t-vat').textContent = fmt(doc.vat_amount)
     } else {
       document.getElementById('t-vat-row').style.display = 'none'
     }
-    if ((doc.discount_after_vat || 0) > 0) {
-      document.getElementById('t-disc-after').textContent = '-' + fmt(doc.discount_after_vat)
-      document.getElementById('t-disc-after-row').style.display = ''
-    }
     if (doc.shipping > 0) {
       document.getElementById('t-shipping').textContent = fmt(doc.shipping)
     } else {
       document.getElementById('t-shipping-row').style.display = 'none'
     }
+
+    // ส่วนลดหลัง VAT — render rows with label
+    const discAfterRows = document.getElementById('t-disc-after-rows')
+    discAfterRows.innerHTML = ''
+    let discAfterArr = []
+    try { discAfterArr = doc.discount_after_json ? JSON.parse(doc.discount_after_json) : [] } catch(e) {}
+    if (!discAfterArr.length && (doc.discount_after_vat || 0) > 0) {
+      discAfterArr = [{ label: 'ส่วนลดหลัง VAT', amount: doc.discount_after_vat }]
+    }
+    discAfterArr.forEach(d => {
+      if (!d.amount) return
+      const row = document.createElement('div')
+      row.className = 'total-row'
+      row.innerHTML = `<span class="total-label" style="color:#d97706;">${d.label || 'ส่วนลด'}</span><span class="total-value" style="color:#d97706;">-${fmt(d.amount)}</span>`
+      discAfterRows.appendChild(row)
+    })
+
     document.getElementById('t-grand').textContent = fmt(doc.total)
 
     // Notes
