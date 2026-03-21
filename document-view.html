@@ -445,8 +445,8 @@
               <th style="width:36px;">#</th>
               <th>รหัส</th>
               <th style="min-width:160px;">รายการสินค้า</th>
-              <th style="width:55px;">หน่วย</th>
               <th style="width:60px;">จำนวน</th>
+              <th style="width:55px;">หน่วย</th>
               <th style="width:90px;">ราคา/หน่วย</th>
               <th style="width:90px;">ราคารวม</th>
               <th style="width:85px;" id="col-discount-header">ส่วนลด</th>
@@ -698,8 +698,8 @@
             <div class="item-name">${item.product_name || '—'}</div>
             ${item.description ? `<div class="item-desc">${item.description}</div>` : ''}
           </td>
-          <td class="item-center">${item.unit || '—'}</td>
           <td class="item-center">${Number(item.quantity).toLocaleString('th-TH')}</td>
+          <td class="item-center">${item.unit || '—'}</td>
           <td class="item-num">${fmt(item.unit_price)}</td>
           <td class="item-num">${fmt(gross)}</td>
           <td class="item-num" style="color:#d97706;display:${hasItemDiscount ? '' : 'none'};">
