@@ -118,6 +118,50 @@
       </div>
     </div>
 
+    <!-- ═══ SIGNATURE SECTION ═══ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-2">
+        <span class="text-lg">✍️</span>
+        <h2 class="font-bold text-gray-800">ลายเซ็นส่วนตัว</h2>
+        <span class="text-xs text-gray-400 ml-1">(โหลดอัตโนมัติในทุกเอกสาร)</span>
+      </div>
+      <div class="px-6 py-6">
+        <!-- Preview -->
+        <div id="sig-preview-wrap" class="mb-4 hidden">
+          <p class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">ลายเซ็นปัจจุบัน</p>
+          <div class="border border-gray-200 rounded-xl p-3 bg-gray-50 inline-block">
+            <img id="sig-preview-img" src="" alt="ลายเซ็น" class="h-14 object-contain"/>
+          </div>
+          <button onclick="deleteSig()"
+            class="ml-3 text-xs text-red-500 hover:text-red-700 font-semibold border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition">
+            🗑 ลบลายเซ็น
+          </button>
+        </div>
+        <!-- Draw pad -->
+        <p class="text-sm text-gray-600 mb-3">
+          <span id="sig-draw-label">วาดลายเซ็นใหม่ด้านล่าง</span>
+        </p>
+        <canvas id="sig-canvas" width="520" height="160"
+          class="block w-full max-w-lg border-2 border-dashed border-gray-300 rounded-xl bg-white cursor-crosshair touch-none"
+          style="height:160px;"></canvas>
+        <div class="flex gap-2 mt-3">
+          <button onclick="clearSigCanvas()"
+            class="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50 transition">
+            ล้าง
+          </button>
+          <button onclick="saveSig()"
+            class="flex items-center gap-2 px-6 py-2 bg-green-700 text-white rounded-xl text-sm font-semibold hover:bg-green-800 transition">
+            <span id="sig-save-text">💾 บันทึกลายเซ็น</span>
+            <svg id="sig-save-spin" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+            </svg>
+          </button>
+        </div>
+        <p class="text-xs text-gray-400 mt-2">ลายเซ็นนี้จะโหลดอัตโนมัติในช่อง "ผู้เสนอราคา / ผู้รับเงิน / ผู้ส่งสินค้า" ทุกครั้งที่เปิดเอกสาร</p>
+      </div>
+    </div>
+
     <!-- Save Button -->
     <div class="flex justify-end gap-3 pb-4">
       <a href="dashboard.html"
@@ -152,6 +196,7 @@ async function init() {
   if (!session) { location.href='index.html'; return }
   currentUser = session.user
   await loadProfile()
+  setupSigCanvas()
 }
 
 async function loadProfile() {
@@ -163,10 +208,98 @@ async function loadProfile() {
     document.getElementById('f-email').value        = data.contact_email || currentUser.email || ''
     document.getElementById('f-display-name').value = data.display_name || ''
     currentLogoUrl = data.logo_url || null
+    // โหลด preview ลายเซ็น
+    if (data.sig_seller) {
+      document.getElementById('sig-preview-img').src = data.sig_seller
+      document.getElementById('sig-preview-wrap').classList.remove('hidden')
+      document.getElementById('sig-draw-label').textContent = 'วาดลายเซ็นใหม่เพื่อแทนที่'
+    }
   } else {
-    // Pre-fill email from auth
     document.getElementById('f-email').value = currentUser.email || ''
   }
+}
+
+/* ─── SIGNATURE CANVAS ────────────────── */
+let sigDrawing = false
+let sigCtx = null
+
+function setupSigCanvas() {
+  const canvas = document.getElementById('sig-canvas')
+  sigCtx = canvas.getContext('2d')
+
+  const getPos = (e) => {
+    const rect = canvas.getBoundingClientRect()
+    const scaleX = canvas.width / rect.width
+    const scaleY = canvas.height / rect.height
+    const src = e.touches ? e.touches[0] : e
+    return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY }
+  }
+  const start = (e) => {
+    e.preventDefault(); sigDrawing = true
+    const p = getPos(e)
+    sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y)
+    sigCtx.strokeStyle = '#1a2e24'; sigCtx.lineWidth = 2.5
+    sigCtx.lineCap = 'round'; sigCtx.lineJoin = 'round'
+  }
+  const draw = (e) => {
+    if (!sigDrawing) return
+    e.preventDefault()
+    const p = getPos(e)
+    sigCtx.lineTo(p.x, p.y); sigCtx.stroke()
+  }
+  const stop = () => { sigDrawing = false }
+
+  canvas.onmousedown = start; canvas.onmousemove = draw
+  canvas.onmouseup = stop; canvas.onmouseleave = stop
+  canvas.ontouchstart = start; canvas.ontouchmove = draw; canvas.ontouchend = stop
+}
+
+function clearSigCanvas() {
+  const canvas = document.getElementById('sig-canvas')
+  sigCtx.clearRect(0, 0, canvas.width, canvas.height)
+}
+
+async function saveSig() {
+  const canvas = document.getElementById('sig-canvas')
+  const imgData = sigCtx.getImageData(0, 0, canvas.width, canvas.height)
+  if (!imgData.data.some(v => v !== 0)) {
+    showAlert('กรุณาวาดลายเซ็นก่อนบันทึก', 'error'); return
+  }
+  document.getElementById('sig-save-text').textContent = 'กำลังบันทึก...'
+  document.getElementById('sig-save-spin').classList.remove('hidden')
+  try {
+    const base64 = canvas.toDataURL('image/png')
+    const { error } = await sb.from('user_profiles').upsert({
+      user_id: currentUser.id,
+      sig_seller: base64,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' })
+    if (error) throw error
+    document.getElementById('sig-preview-img').src = base64
+    document.getElementById('sig-preview-wrap').classList.remove('hidden')
+    document.getElementById('sig-draw-label').textContent = 'วาดลายเซ็นใหม่เพื่อแทนที่'
+    clearSigCanvas()
+    showAlert('บันทึกลายเซ็นเรียบร้อยแล้ว ✓', 'success')
+  } catch(err) {
+    showAlert('บันทึกไม่สำเร็จ: ' + err.message, 'error')
+  } finally {
+    document.getElementById('sig-save-text').textContent = '💾 บันทึกลายเซ็น'
+    document.getElementById('sig-save-spin').classList.add('hidden')
+  }
+}
+
+async function deleteSig() {
+  if (!confirm('ยืนยันลบลายเซ็น?')) return
+  const { error } = await sb.from('user_profiles').upsert({
+    user_id: currentUser.id,
+    sig_seller: null,
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'user_id' })
+  if (error) { showAlert('ลบไม่สำเร็จ: ' + error.message, 'error'); return }
+  document.getElementById('sig-preview-wrap').classList.add('hidden')
+  document.getElementById('sig-preview-img').src = ''
+  document.getElementById('sig-draw-label').textContent = 'วาดลายเซ็นใหม่ด้านล่าง'
+  showAlert('ลบลายเซ็นเรียบร้อยแล้ว', 'success')
 }
 
 /* ─── LOGO HANDLING ───────────────────── */
