@@ -145,23 +145,23 @@
       padding: 8px 10px; text-align: left;
       letter-spacing: .04em; text-transform: uppercase;
     }
-    .items-table thead th:last-child,
+    /* หน่วย(4) จำนวน(5) = center | ราคา/หน่วย(6) ราคารวม(7) ส่วนลด(8) ยอดสุทธิ(9) = right */
     .items-table thead th:nth-child(4),
-    .items-table thead th:nth-child(5) { text-align: right; }
-    .items-table thead th:nth-child(3) { text-align: center; }
+    .items-table thead th:nth-child(5) { text-align: center; }
+    .items-table thead th:nth-child(6),
+    .items-table thead th:nth-child(7),
+    .items-table thead th:nth-child(8),
+    .items-table thead th:nth-child(9) { text-align: right; }
 
     .items-table tbody tr { border-bottom: 1px solid #edf2ef; }
     .items-table tbody tr:nth-child(even) { background: #f9fcfa; }
     .items-table tbody tr:hover { background: #f0faf4; }
     .items-table tbody td { padding: 6px 10px; color: #1f3a2c; vertical-align: middle; }
-    .items-table tbody td:last-child,
-    .items-table tbody td:nth-child(4),
-    .items-table tbody td:nth-child(5) { text-align: right; }
-    .items-table tbody td:nth-child(3) { text-align: center; }
     .item-code { font-size: 10px; color: #3a7a56; font-weight: 600; font-family: monospace; }
     .item-name { font-weight: 600; color: #111; line-height: 1.3; font-size: 12px; }
     .item-desc { font-size: 10.5px; color: #7a9488; margin-top: 1px; }
-    .item-num { font-variant-numeric: tabular-nums; }
+    .item-num { font-variant-numeric: tabular-nums; text-align: right; }
+    .item-center { text-align: center; }
 
     /* ── TOTALS ── */
     .totals-section {
@@ -698,8 +698,8 @@
             <div class="item-name">${item.product_name || '—'}</div>
             ${item.description ? `<div class="item-desc">${item.description}</div>` : ''}
           </td>
-          <td class="item-num">${item.unit || '—'}</td>
-          <td class="item-num">${Number(item.quantity).toLocaleString('th-TH')}</td>
+          <td class="item-center">${item.unit || '—'}</td>
+          <td class="item-center">${Number(item.quantity).toLocaleString('th-TH')}</td>
           <td class="item-num">${fmt(item.unit_price)}</td>
           <td class="item-num">${fmt(gross)}</td>
           <td class="item-num" style="color:#d97706;display:${hasItemDiscount ? '' : 'none'};">
