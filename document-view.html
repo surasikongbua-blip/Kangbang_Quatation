@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"/>
+  <meta name="viewport" content="width=794, user-scalable=yes"/>
   <title>ดูเอกสาร — Kang Bang</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -279,69 +279,8 @@
     .btn-apply-sig { padding: 8px 20px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
     .btn-apply-sig:hover { background: var(--accent); }
 
-    /* ── MOBILE A4 VIEWER ── */
-    /* iPhone 6.1" (390px logical width) — show A4 at true proportions with pinch-zoom */
-    @media (max-width: 639px) {
-      body {
-        background: #2a2a2a;
-        overflow-x: hidden;
-      }
-
-      #page-wrap {
-        padding: 106px 0 60px;
-        display: block;
-        overflow: visible;
-      }
-
-      /* A4 = 794px — JS will scale it to fit screen */
-      #document-paper {
-        width: 794px;
-        margin: 0;
-        border-radius: 0;
-        box-shadow: none;
-      }
-
-      /* Hint bar at bottom */
-      #mobile-hint {
-        position: fixed;
-        bottom: 0; left: 0; right: 0;
-        background: rgba(0,0,0,.75);
-        color: #ccc;
-        font-size: 11px;
-        text-align: center;
-        padding: 6px 12px 10px;
-        z-index: 50;
-        font-family: 'Sarabun', sans-serif;
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
-      }
-
-      /* Toolbar buttons — slightly larger touch targets */
-      .btn-tool { padding: 9px 13px; font-size: 12px; }
-
-      /* Zoom controls */
-      #zoom-controls {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        background: rgba(255,255,255,.13);
-        border-radius: 8px;
-        padding: 2px 6px;
-        flex-shrink: 0;
-      }
-      #zoom-controls button {
-        background: none; border: none; color: #fff;
-        font-size: 18px; font-weight: 700; cursor: pointer;
-        padding: 2px 6px; line-height: 1;
-      }
-      #zoom-label { color: rgba(255,255,255,.85); font-size: 12px; font-weight: 600; min-width: 38px; text-align: center; }
-    }
-
-    /* Hide zoom controls on desktop */
-    @media (min-width: 640px) {
-      #zoom-controls { display: none; }
-      #mobile-hint { display: none; }
-    }
+    /* Hide zoom controls (removed feature) */
+    #zoom-controls, #mobile-hint { display: none !important; }
 
     /* ── FORCE COLORS EVERYWHERE ── */
     * {
@@ -882,43 +821,8 @@
   })
   document.getElementById('sig-buyer-box').addEventListener('click', () => openSigModal('buyer'))
 
-  /* ── MOBILE ZOOM ── */
-  let currentScale = 1.0
-  const A4_W = 794
-
-  function applyZoom() {
-    if (window.innerWidth >= 640) return
-    const paper = document.getElementById('document-paper')
-    // CSS zoom shrinks the element AND its layout space — no wrap hacks needed
-    paper.style.zoom = currentScale
-    document.getElementById('zoom-label').textContent = Math.round(currentScale * 100) + '%'
-  }
-
-  function zoomIn() {
-    if (currentScale < 2.0) { currentScale = Math.round((currentScale + 0.1) * 10) / 10; applyZoom() }
-  }
-  function zoomOut() {
-    if (currentScale > 0.3) { currentScale = Math.round((currentScale - 0.1) * 10) / 10; applyZoom() }
-  }
-
-  function initZoom() {
-    if (window.innerWidth < 640) {
-      currentScale = Math.floor((window.innerWidth / A4_W) * 10) / 10
-      if (currentScale < 0.3) currentScale = 0.3
-      setTimeout(applyZoom, 200)
-    }
-  }
-
-  // Reset zoom before print so A4 renders at full size
-  window.addEventListener('beforeprint', () => {
-    document.getElementById('document-paper').style.zoom = 1
-  })
-  window.addEventListener('afterprint', () => {
-    if (window.innerWidth < 640) applyZoom()
-  })
-
   init()
-  initZoom()
+
 </script>
 </body>
 </html>
