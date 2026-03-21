@@ -444,16 +444,17 @@
             <tr>
               <th style="width:36px;">#</th>
               <th>รหัส</th>
-              <th style="min-width:180px;">รายการสินค้า</th>
-              <th style="width:60px;">หน่วย</th>
-              <th style="width:70px;">จำนวน</th>
-              <th style="width:100px;">ราคา/หน่วย</th>
-              <th style="width:90px;" id="col-discount-header">ส่วนลด</th>
-              <th style="width:110px;">ยอดรวม</th>
+              <th style="min-width:160px;">รายการสินค้า</th>
+              <th style="width:55px;">หน่วย</th>
+              <th style="width:60px;">จำนวน</th>
+              <th style="width:90px;">ราคา/หน่วย</th>
+              <th style="width:90px;">ราคารวม</th>
+              <th style="width:85px;" id="col-discount-header">ส่วนลด</th>
+              <th style="width:100px;">ยอดสุทธิ</th>
             </tr>
           </thead>
           <tbody id="items-tbody">
-            <tr><td colspan="8" style="text-align:center;padding:20px;color:#a0b8ae;">กำลังโหลด...</td></tr>
+            <tr><td colspan="9" style="text-align:center;padding:20px;color:#a0b8ae;">กำลังโหลด...</td></tr>
           </tbody>
         </table>
         <!-- Totals -->
@@ -478,6 +479,9 @@
             <div class="total-row grand">
               <span class="total-label">ยอดสุทธิ</span>
               <span class="total-value" id="t-grand">—</span>
+            </div>
+            <div class="total-row" style="background:#f0faf4;border-top:1px solid #d1e8da;">
+              <span style="font-size:10px;color:#3a7a56;font-style:italic;text-align:right;width:100%;" id="t-grand-text">—</span>
             </div>
           </div>
         </div>
@@ -547,7 +551,46 @@
     cancelled: { label: 'ยกเลิก',  bg: '#fee2e2', color: '#991b1b', dot: '#ef4444' },
   }
 
-  function fmt(n) { return '฿' + Number(n || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 }) }
+  function fmt(n) { return Number(n || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 }) }
+
+  function thaiMoney(amount) {
+    const ones  = ['','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า']
+    const tens  = ['','สิบ','ยี่สิบ','สามสิบ','สี่สิบ','ห้าสิบ','หกสิบ','เจ็ดสิบ','แปดสิบ','เก้าสิบ']
+    const pos   = ['','สิบ','ร้อย','พัน','หมื่น','แสน','ล้าน']
+
+    function readGroup(n) {
+      // n is 1–999999
+      if (n === 0) return ''
+      if (n >= 1000000) {
+        return readGroup(Math.floor(n / 1000000)) + 'ล้าน' + readGroup(n % 1000000)
+      }
+      let result = ''
+      const digits = String(n).split('').reverse()
+      for (let i = digits.length - 1; i >= 0; i--) {
+        const d = parseInt(digits[i])
+        if (d === 0) continue
+        // special: สิบเอ็ด (11), ยี่สิบ (20-29)
+        if (i === 1 && d === 1) result += 'สิบ'
+        else if (i === 1) result += tens[d]
+        else if (i === 0 && d === 1 && digits.length > 1) result += 'เอ็ด'
+        else result += ones[d] + pos[i]
+      }
+      return result
+    }
+
+    const total = Math.round(Math.abs(amount) * 100)
+    const baht  = Math.floor(total / 100)
+    const satang = total % 100
+
+    if (baht === 0 && satang === 0) return 'ศูนย์บาทถ้วน'
+    let result = baht > 0 ? readGroup(baht) + 'บาท' : ''
+    if (satang > 0) {
+      result += readGroup(satang) + 'สตางค์'
+    } else {
+      result += 'ถ้วน'
+    }
+    return result
+  }
   function fmtDate(d) {
     if (!d) return '—'
     return new Date(d).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -621,12 +664,13 @@
     // Items
     const tbody = document.getElementById('items-tbody')
     const hasItemDiscount = items.some(i => (i.discount || 0) > 0)
-    // Hide discount column header if none of the items have discount
     document.getElementById('col-discount-header').style.display = hasItemDiscount ? '' : 'none'
     if (!items.length) {
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:#a0b8ae;">ไม่มีรายการสินค้า</td></tr>`
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:#a0b8ae;">ไม่มีรายการสินค้า</td></tr>`
     } else {
-      tbody.innerHTML = items.map((item, i) => `
+      tbody.innerHTML = items.map((item, i) => {
+        const gross = (item.quantity || 0) * (item.unit_price || 0)
+        return `
         <tr>
           <td style="color:#8aaa98;font-size:12px;">${i + 1}</td>
           <td><span class="item-code">${item.product_code || '—'}</span></td>
@@ -637,11 +681,13 @@
           <td class="item-num">${item.unit || '—'}</td>
           <td class="item-num">${Number(item.quantity).toLocaleString('th-TH')}</td>
           <td class="item-num">${fmt(item.unit_price)}</td>
+          <td class="item-num">${fmt(gross)}</td>
           <td class="item-num" style="color:#d97706;display:${hasItemDiscount ? '' : 'none'};">
             ${(item.discount || 0) > 0 ? '-' + fmt(item.discount) : '—'}
           </td>
           <td class="item-num" style="font-weight:600;">${fmt(item.total_price)}</td>
-        </tr>`).join('')
+        </tr>`
+      }).join('')
     }
 
     // Totals
@@ -692,6 +738,7 @@
     })
 
     document.getElementById('t-grand').textContent = fmt(doc.total)
+    document.getElementById('t-grand-text').textContent = thaiMoney(doc.total)
 
     // Notes
     if (doc.notes) {
