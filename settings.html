@@ -10,6 +10,45 @@
 <style>
   body { font-family: 'Sarabun', sans-serif; }
 
+  /* ── QR Drop Zone ── */
+  .qr-dropzone {
+    border: 2px dashed #d1e8da;
+    border-radius: 16px;
+    transition: all .2s;
+    cursor: pointer;
+    background: #f9fafb;
+    position: relative;
+  }
+  .qr-dropzone:hover, .qr-dropzone.drag-over {
+    border-color: #1a5c38;
+    background: #ecfdf5;
+  }
+
+  /* ── Bank Row ── */
+  .bank-entry {
+    background: #f9fafb;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 10px;
+    position: relative;
+  }
+  .bank-entry-header {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .bank-entry-num {
+    font-size: 12px; font-weight: 700; color: #1a5c38;
+    background: #e8f5ee; padding: 2px 10px; border-radius: 20px;
+  }
+  .remove-bank-btn {
+    background: none; border: none; cursor: pointer;
+    color: #e53e3e; font-size: 18px; line-height: 1;
+    padding: 2px 6px; border-radius: 6px; transition: background .15s;
+  }
+  .remove-bank-btn:hover { background: #fee2e2; }
+
+  /* ── Scroll anchor ── */
+  #payment { scroll-margin-top: 80px; }
 </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -32,7 +71,7 @@
   <!-- Header -->
   <div class="mb-8">
     <h1 class="text-2xl font-bold text-gray-800">ตั้งค่าโปรไฟล์</h1>
-    <p class="text-gray-500 text-sm mt-1">ข้อมูลนี้จะแสดงในเอกสารที่คุณสร้าง — แต่ละคนตั้งค่าได้อิสระ</p>
+    <p class="text-gray-500 text-sm mt-1">ข้อมูลจะแสดงในเอกสารและหน้าช่องทางชำระเงินของคุณ</p>
   </div>
 
   <!-- Alert -->
@@ -40,7 +79,7 @@
 
   <div class="space-y-6">
 
-    <!-- ═══ LOGO SECTION ═══ -->
+    <!-- ═══ LOGO ═══ -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-2">
         <span class="text-lg">🖼️</span>
@@ -59,7 +98,7 @@
       </div>
     </div>
 
-    <!-- ═══ CONTACT SECTION ═══ -->
+    <!-- ═══ CONTACT ═══ -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-2">
         <span class="text-lg">📞</span>
@@ -67,41 +106,115 @@
         <span class="text-xs text-gray-400 ml-1">(แสดงในเอกสารของคุณ)</span>
       </div>
       <div class="px-6 py-6 space-y-4">
-
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-600 mb-1.5">
-              เบอร์โทรศัพท์ <span class="text-red-400">*</span>
-            </label>
+            <label class="block text-sm font-medium text-gray-600 mb-1.5">เบอร์โทรศัพท์ <span class="text-red-400">*</span></label>
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">📞</span>
               <input id="f-phone" type="tel" placeholder="เช่น 063-4465622"
-                class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"/>
+                class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-600 mb-1.5">
-              อีเมลติดต่อ
-            </label>
+            <label class="block text-sm font-medium text-gray-600 mb-1.5">อีเมลติดต่อ</label>
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">✉️</span>
               <input id="f-email" type="email" placeholder="เช่น yourname@gmail.com"
-                class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"/>
+                class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1.5">ชื่อผู้ออกเอกสาร / ตำแหน่ง</label>
+          <input id="f-display-name" type="text" placeholder="เช่น สมชาย ใจดี (ฝ่ายขาย)"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
+          <p class="text-xs text-gray-400 mt-1">แสดงใต้ลายเซ็นในเอกสาร</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PAYMENT SECTION ═══ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden" id="payment">
+      <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">💳</span>
+          <h2 class="font-bold text-gray-800">ช่องทางชำระเงิน</h2>
+        </div>
+        <a href="payment.html" target="_blank"
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 rounded-lg text-xs font-semibold hover:bg-green-100 transition">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6m0 0v6m0-6L10 14"/></svg>
+          ดูตัวอย่าง
+        </a>
+      </div>
+      <div class="px-6 py-6 space-y-6">
+
+        <!-- ─ Bank Accounts ─ -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <div class="text-sm font-semibold text-gray-700">บัญชีธนาคาร</div>
+              <div class="text-xs text-gray-400 mt-0.5">เพิ่มได้หลายบัญชี ผู้ชำระจะคัดลอกเลขบัญชีได้</div>
+            </div>
+            <button onclick="addBankRow()"
+              class="flex items-center gap-1.5 px-3 py-2 bg-green-700 text-white rounded-xl text-xs font-semibold hover:bg-green-800 transition">
+              + เพิ่มบัญชี
+            </button>
+          </div>
+          <div id="bank-list" class="space-y-3">
+            <!-- filled by JS -->
+          </div>
+        </div>
+
+        <!-- ─ Divider ─ -->
+        <div class="flex items-center gap-3">
+          <div class="flex-1 h-px bg-gray-100"></div>
+          <span class="text-xs text-gray-400 font-semibold">QR Code</span>
+          <div class="flex-1 h-px bg-gray-100"></div>
+        </div>
+
+        <!-- ─ QR Upload ─ -->
+        <div>
+          <div class="text-sm font-semibold text-gray-700 mb-1">QR Code ชำระเงิน</div>
+          <div class="text-xs text-gray-400 mb-3">อัปโหลดภาพ QR Code (PromptPay, TrueMoney ฯลฯ) ขนาดไม่เกิน 2MB</div>
+
+          <!-- Preview (when has image) -->
+          <div id="qr-preview-wrap" class="hidden flex flex-col items-center gap-3 mb-4">
+            <div class="relative inline-block">
+              <img id="qr-preview-img" src="" alt="QR"
+                class="w-44 h-44 object-contain rounded-2xl border-2 border-green-200 bg-white p-2 shadow-sm"/>
+              <button onclick="removeQR()"
+                class="absolute -top-2 -right-2 w-7 h-7 bg-red-500 text-white rounded-full text-sm flex items-center justify-center hover:bg-red-600 transition shadow">
+                ×
+              </button>
+            </div>
+            <span class="text-xs text-green-700 font-semibold bg-green-50 px-3 py-1 rounded-full">✓ มีรูป QR แล้ว</span>
+          </div>
+
+          <!-- Drop Zone -->
+          <div id="qr-dropzone" class="qr-dropzone"
+            onclick="document.getElementById('qr-file').click()"
+            ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+            <input type="file" id="qr-file" accept="image/*" class="hidden" onchange="handleQRFile(event)"/>
+            <div class="flex flex-col items-center justify-center py-8 px-4 text-center pointer-events-none">
+              <div id="qr-dz-icon" class="text-3xl mb-2">📲</div>
+              <div id="qr-dz-text" class="text-sm font-semibold text-gray-600">คลิกหรือลากรูป QR Code มาวาง</div>
+              <div class="text-xs text-gray-400 mt-1">PNG, JPG, WEBP — ไม่เกิน 2MB</div>
             </div>
           </div>
         </div>
 
+        <!-- ─ Payment Notes ─ -->
         <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1.5">ชื่อผู้ออกเอกสาร / ตำแหน่ง</label>
-          <input id="f-display-name" type="text" placeholder="เช่น สมชาย ใจดี (ฝ่ายขาย)"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"/>
-          <p class="text-xs text-gray-400 mt-1">แสดงใต้ลายเซ็นในเอกสาร</p>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">หมายเหตุการชำระเงิน</label>
+          <textarea id="f-payment-notes" rows="2"
+            placeholder="เช่น กรุณาโอนก่อนจัดส่ง / แจ้งชื่อผู้โอนทางไลน์ด้วยนะครับ"
+            class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"></textarea>
         </div>
 
       </div>
     </div>
 
-    <!-- ═══ COMPANY INFO (read-only preview) ═══ -->
+    <!-- ═══ COMPANY INFO (read-only) ═══ -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-2">
         <span class="text-lg">🏢</span>
@@ -114,60 +227,12 @@
           <p>28/101 หมู่ที่ 19 ตำบลบางพลีใหญ่ อำเภอบางพลี จังหวัดสมุทรปราการ 10540</p>
           <p>เลขประจำตัวผู้เสียภาษีอากร: 0 1155 66014 56 8</p>
         </div>
-        <p class="text-xs text-gray-400 mt-3">ติดต่อผู้ดูแลระบบหากต้องการแก้ไขข้อมูลบริษัท</p>
       </div>
     </div>
 
-    <!-- ═══ SIGNATURE SECTION ═══ -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-2">
-        <span class="text-lg">✍️</span>
-        <h2 class="font-bold text-gray-800">ลายเซ็นส่วนตัว</h2>
-        <span class="text-xs text-gray-400 ml-1">(โหลดอัตโนมัติในทุกเอกสาร)</span>
-      </div>
-      <div class="px-6 py-6">
-        <!-- Preview -->
-        <div id="sig-preview-wrap" class="mb-4 hidden">
-          <p class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">ลายเซ็นปัจจุบัน</p>
-          <div class="border border-gray-200 rounded-xl p-3 bg-gray-50 inline-block">
-            <img id="sig-preview-img" src="" alt="ลายเซ็น" class="h-14 object-contain"/>
-          </div>
-          <button onclick="deleteSig()"
-            class="ml-3 text-xs text-red-500 hover:text-red-700 font-semibold border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition">
-            🗑 ลบลายเซ็น
-          </button>
-        </div>
-        <!-- Draw pad -->
-        <p class="text-sm text-gray-600 mb-3">
-          <span id="sig-draw-label">วาดลายเซ็นใหม่ด้านล่าง</span>
-        </p>
-        <canvas id="sig-canvas" width="520" height="160"
-          class="block w-full max-w-lg border-2 border-dashed border-gray-300 rounded-xl bg-white cursor-crosshair touch-none"
-          style="height:160px;"></canvas>
-        <div class="flex gap-2 mt-3">
-          <button onclick="clearSigCanvas()"
-            class="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50 transition">
-            ล้าง
-          </button>
-          <button onclick="saveSig()"
-            class="flex items-center gap-2 px-6 py-2 bg-green-700 text-white rounded-xl text-sm font-semibold hover:bg-green-800 transition">
-            <span id="sig-save-text">💾 บันทึกลายเซ็น</span>
-            <svg id="sig-save-spin" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
-            </svg>
-          </button>
-        </div>
-        <p class="text-xs text-gray-400 mt-2">ลายเซ็นนี้จะโหลดอัตโนมัติในช่อง "ผู้เสนอราคา / ผู้รับเงิน / ผู้ส่งสินค้า" ทุกครั้งที่เปิดเอกสาร</p>
-      </div>
-    </div>
-
-    <!-- Save Button -->
+    <!-- Save -->
     <div class="flex justify-end gap-3 pb-4">
-      <a href="dashboard.html"
-        class="px-6 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
-        ยกเลิก
-      </a>
+      <a href="dashboard.html" class="px-6 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 transition">ยกเลิก</a>
       <button onclick="saveProfile()"
         class="flex items-center gap-2 px-8 py-2.5 bg-green-700 text-white rounded-xl text-sm font-semibold hover:bg-green-800 transition shadow-sm">
         <span id="save-btn-text">💾 บันทึกการตั้งค่า</span>
@@ -182,179 +247,222 @@
 </div>
 
 <script>
-/* ─── SUPABASE ─────────────────────────── */
 const SB_URL = 'https://ygdcbkhaqsaiyymxvrph.supabase.co'
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnZGNia2hhcXNhaXl5bXh2cnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzY4NTMsImV4cCI6MjA4ODYxMjg1M30.1quRttxAsp4b9471rdUh0zkdx97tfK9pW__0Bh3RWY0'
 const { createClient } = supabase
 const sb = createClient(SB_URL, SB_KEY)
 
 let currentUser = null
-let currentLogoUrl = null
-/* ─── INIT ────────────────────────────── */
+let bankAccounts = []  // [{ bank, account_name, account_number }]
+let qrFile = null      // File object (new upload)
+let existingQrUrl = '' // URL from Supabase
+
+const BANKS = [
+  { value: 'kbank',     label: '💚 กสิกรไทย (KBank)' },
+  { value: 'scb',       label: '💜 ไทยพาณิชย์ (SCB)' },
+  { value: 'bbl',       label: '💙 กรุงเทพ (BBL)' },
+  { value: 'ktb',       label: '🩵 กรุงไทย (KTB)' },
+  { value: 'bay',       label: '🟡 กรุงศรีอยุธยา (BAY)' },
+  { value: 'tmb',       label: '🟠 ทหารไทย (TTB)' },
+  { value: 'gsb',       label: '🩷 ออมสิน (GSB)' },
+  { value: 'baac',      label: '🌿 ธ.ก.ส. (BAAC)' },
+  { value: 'promptpay', label: '🏦 พร้อมเพย์ (PromptPay)' },
+  { value: 'other',     label: '🏧 อื่นๆ' },
+]
+
 async function init() {
-  const { data:{ session } } = await sb.auth.getSession()
-  if (!session) { location.href='index.html'; return }
+  const { data: { session } } = await sb.auth.getSession()
+  if (!session) { location.href = 'index.html'; return }
   currentUser = session.user
-  await loadProfile()
-  setupSigCanvas()
-}
 
-async function loadProfile() {
-  const { data } = await sb.from('user_profiles')
-    .select('*').eq('user_id', currentUser.id).single()
-
+  const { data } = await sb.from('user_profiles').select('*').eq('user_id', currentUser.id).single()
   if (data) {
-    document.getElementById('f-phone').value        = data.phone        || ''
+    document.getElementById('f-phone').value        = data.phone || ''
     document.getElementById('f-email').value        = data.contact_email || currentUser.email || ''
     document.getElementById('f-display-name').value = data.display_name || ''
-    currentLogoUrl = data.logo_url || null
-    // โหลด preview ลายเซ็น
-    if (data.sig_seller) {
-      document.getElementById('sig-preview-img').src = data.sig_seller
-      document.getElementById('sig-preview-wrap').classList.remove('hidden')
-      document.getElementById('sig-draw-label').textContent = 'วาดลายเซ็นใหม่เพื่อแทนที่'
+    document.getElementById('f-payment-notes').value = data.payment_notes || ''
+
+    // Load bank accounts
+    bankAccounts = Array.isArray(data.payment_accounts) ? data.payment_accounts : []
+
+    // Load QR URL
+    existingQrUrl = data.payment_qr_url || ''
+    if (existingQrUrl) {
+      document.getElementById('qr-preview-img').src = existingQrUrl
+      document.getElementById('qr-preview-wrap').classList.remove('hidden')
     }
   } else {
     document.getElementById('f-email').value = currentUser.email || ''
   }
-}
 
-/* ─── SIGNATURE CANVAS ────────────────── */
-let sigDrawing = false
-let sigCtx = null
+  renderBankList()
 
-function setupSigCanvas() {
-  const canvas = document.getElementById('sig-canvas')
-  sigCtx = canvas.getContext('2d')
-
-  const getPos = (e) => {
-    const rect = canvas.getBoundingClientRect()
-    const scaleX = canvas.width / rect.width
-    const scaleY = canvas.height / rect.height
-    const src = e.touches ? e.touches[0] : e
-    return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY }
-  }
-  const start = (e) => {
-    e.preventDefault(); sigDrawing = true
-    const p = getPos(e)
-    sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y)
-    sigCtx.strokeStyle = '#1a2e24'; sigCtx.lineWidth = 2.5
-    sigCtx.lineCap = 'round'; sigCtx.lineJoin = 'round'
-  }
-  const draw = (e) => {
-    if (!sigDrawing) return
-    e.preventDefault()
-    const p = getPos(e)
-    sigCtx.lineTo(p.x, p.y); sigCtx.stroke()
-  }
-  const stop = () => { sigDrawing = false }
-
-  canvas.onmousedown = start; canvas.onmousemove = draw
-  canvas.onmouseup = stop; canvas.onmouseleave = stop
-  canvas.ontouchstart = start; canvas.ontouchmove = draw; canvas.ontouchend = stop
-}
-
-function clearSigCanvas() {
-  const canvas = document.getElementById('sig-canvas')
-  sigCtx.clearRect(0, 0, canvas.width, canvas.height)
-}
-
-async function saveSig() {
-  const canvas = document.getElementById('sig-canvas')
-  const imgData = sigCtx.getImageData(0, 0, canvas.width, canvas.height)
-  if (!imgData.data.some(v => v !== 0)) {
-    showAlert('กรุณาวาดลายเซ็นก่อนบันทึก', 'error'); return
-  }
-  document.getElementById('sig-save-text').textContent = 'กำลังบันทึก...'
-  document.getElementById('sig-save-spin').classList.remove('hidden')
-  try {
-    const base64 = canvas.toDataURL('image/png')
-    const { error } = await sb.from('user_profiles').upsert({
-      user_id: currentUser.id,
-      sig_seller: base64,
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'user_id' })
-    if (error) throw error
-    document.getElementById('sig-preview-img').src = base64
-    document.getElementById('sig-preview-wrap').classList.remove('hidden')
-    document.getElementById('sig-draw-label').textContent = 'วาดลายเซ็นใหม่เพื่อแทนที่'
-    clearSigCanvas()
-    showAlert('บันทึกลายเซ็นเรียบร้อยแล้ว ✓', 'success')
-  } catch(err) {
-    showAlert('บันทึกไม่สำเร็จ: ' + err.message, 'error')
-  } finally {
-    document.getElementById('sig-save-text').textContent = '💾 บันทึกลายเซ็น'
-    document.getElementById('sig-save-spin').classList.add('hidden')
+  // Scroll to #payment if hash
+  if (window.location.hash === '#payment') {
+    setTimeout(() => document.getElementById('payment').scrollIntoView({ behavior: 'smooth' }), 300)
   }
 }
 
-async function deleteSig() {
-  if (!confirm('ยืนยันลบลายเซ็น?')) return
-  const { error } = await sb.from('user_profiles').upsert({
-    user_id: currentUser.id,
-    sig_seller: null,
-    updated_at: new Date().toISOString()
-  }, { onConflict: 'user_id' })
-  if (error) { showAlert('ลบไม่สำเร็จ: ' + error.message, 'error'); return }
-  document.getElementById('sig-preview-wrap').classList.add('hidden')
-  document.getElementById('sig-preview-img').src = ''
-  document.getElementById('sig-draw-label').textContent = 'วาดลายเซ็นใหม่ด้านล่าง'
-  showAlert('ลบลายเซ็นเรียบร้อยแล้ว', 'success')
+/* ─── BANK ROWS ─────────────────────── */
+function renderBankList() {
+  const list = document.getElementById('bank-list')
+  if (!bankAccounts.length) {
+    list.innerHTML = `
+      <div class="text-center py-6 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-xl">
+        ยังไม่มีบัญชีธนาคาร — กด "+ เพิ่มบัญชี" ด้านบน
+      </div>`
+    return
+  }
+  list.innerHTML = bankAccounts.map((acc, i) => `
+    <div class="bank-entry" id="bank-entry-${i}">
+      <div class="bank-entry-header">
+        <span class="bank-entry-num">บัญชีที่ ${i + 1}</span>
+        <button class="remove-bank-btn" onclick="removeBankRow(${i})" title="ลบบัญชีนี้">×</button>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">ธนาคาร <span class="text-red-400">*</span></label>
+          <select id="bank-bank-${i}" onchange="updateBank(${i}, 'bank', this.value)"
+            class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
+            ${BANKS.map(b => `<option value="${b.value}" ${acc.bank === b.value ? 'selected' : ''}>${b.label}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">ชื่อบัญชี <span class="text-red-400">*</span></label>
+          <input type="text" id="bank-name-${i}" value="${esc(acc.account_name)}"
+            placeholder="ชื่อ-นามสกุลในบัญชี"
+            oninput="updateBank(${i}, 'account_name', this.value)"
+            class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">เลขบัญชี <span class="text-red-400">*</span></label>
+          <input type="text" id="bank-num-${i}" value="${esc(acc.account_number)}"
+            placeholder="xxx-x-xxxxx-x"
+            oninput="updateBank(${i}, 'account_number', this.value)"
+            class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 font-mono"/>
+        </div>
+      </div>
+    </div>`).join('')
 }
 
-/* ─── LOGO HANDLING ───────────────────── */
-function handleLogoFile(e) {
+function addBankRow() {
+  bankAccounts.push({ bank: 'kbank', account_name: '', account_number: '' })
+  renderBankList()
+  // Focus the first input of the new row
+  setTimeout(() => {
+    const nameInput = document.getElementById(`bank-name-${bankAccounts.length - 1}`)
+    if (nameInput) nameInput.focus()
+  }, 50)
+}
+
+function removeBankRow(i) {
+  bankAccounts.splice(i, 1)
+  renderBankList()
+}
+
+function updateBank(i, field, value) {
+  bankAccounts[i][field] = value
+}
+
+/* ─── QR UPLOAD ──────────────────────── */
+function handleQRFile(e) {
   const file = e.target.files[0]
-  if (!file) return
+  if (file) processQRFile(file)
+}
+
+function processQRFile(file) {
   if (file.size > 2 * 1024 * 1024) { showAlert('ไฟล์ใหญ่เกิน 2MB', 'error'); return }
-    const url = URL.createObjectURL(file)
-  setLogoPreview(url)
+  if (!file.type.startsWith('image/')) { showAlert('กรุณาเลือกไฟล์รูปภาพ', 'error'); return }
+  qrFile = file
+  const url = URL.createObjectURL(file)
+  document.getElementById('qr-preview-img').src = url
+  document.getElementById('qr-preview-wrap').classList.remove('hidden')
+  document.getElementById('qr-dz-text').textContent = '✓ เลือกรูปแล้ว — กดบันทึกเพื่ออัปโหลด'
 }
 
-
-
-
-function setLogoPreview(src) {
-  const img  = document.getElementById('logo-preview')
-  const ph   = document.getElementById('logo-placeholder')
-  const rmBtn= document.getElementById('logo-remove-btn')
-  img.src    = src
-  img.classList.remove('hidden')
-  ph.style.display = 'none'
-  rmBtn.style.display = ''
+function removeQR() {
+  qrFile = null
+  existingQrUrl = ''
+  document.getElementById('qr-preview-img').src = ''
+  document.getElementById('qr-preview-wrap').classList.add('hidden')
+  document.getElementById('qr-dz-text').textContent = 'คลิกหรือลากรูป QR Code มาวาง'
+  document.getElementById('qr-file').value = ''
 }
 
+function onDragOver(e) {
+  e.preventDefault()
+  document.getElementById('qr-dropzone').classList.add('drag-over')
+}
+function onDragLeave(e) {
+  document.getElementById('qr-dropzone').classList.remove('drag-over')
+}
+function onDrop(e) {
+  e.preventDefault()
+  document.getElementById('qr-dropzone').classList.remove('drag-over')
+  const file = e.dataTransfer.files[0]
+  if (file) processQRFile(file)
+}
 
-
-
+/* ─── SAVE ───────────────────────────── */
 async function saveProfile() {
   const phone       = document.getElementById('f-phone').value.trim()
   const email       = document.getElementById('f-email').value.trim()
   const displayName = document.getElementById('f-display-name').value.trim()
+  const payNotes    = document.getElementById('f-payment-notes').value.trim()
 
   if (!phone) { showAlert('กรุณากรอกเบอร์โทรศัพท์', 'error'); return }
+
+  // Validate bank rows
+  for (let i = 0; i < bankAccounts.length; i++) {
+    const acc = bankAccounts[i]
+    if (!acc.account_name.trim() || !acc.account_number.trim()) {
+      showAlert(`กรุณากรอกชื่อบัญชีและเลขบัญชีให้ครบ (บัญชีที่ ${i + 1})`, 'error')
+      return
+    }
+  }
 
   setSaving(true)
 
   try {
-    let logoUrl = currentLogoUrl  // keep existing
+    // Upload QR if new file
+    let qrUrl = existingQrUrl
+    if (qrFile) {
+      const ext  = qrFile.name.split('.').pop()
+      const path = `qr/${currentUser.id}/payment-qr.${ext}`
+      const { error: upErr } = await sb.storage
+        .from('company-assets')
+        .upload(path, qrFile, { upsert: true, contentType: qrFile.type })
 
-    const payload = {
-      user_id:       currentUser.id,
-      phone,
-      contact_email: email || null,
-      display_name:  displayName || null,
-      logo_url:      logoUrl,
-      updated_at:    new Date().toISOString()
+      if (upErr) throw upErr
+
+      const { data: urlData } = sb.storage.from('company-assets').getPublicUrl(path)
+      qrUrl = urlData.publicUrl + '?t=' + Date.now() // cache bust
+    } else if (!existingQrUrl) {
+      qrUrl = null
     }
 
-    // Upsert: insert if not exists, update if exists
+    const payload = {
+      user_id:           currentUser.id,
+      phone,
+      contact_email:     email || null,
+      display_name:      displayName || null,
+      payment_accounts:  bankAccounts.length ? bankAccounts : null,
+      payment_qr_url:    qrUrl || null,
+      payment_notes:     payNotes || null,
+      updated_at:        new Date().toISOString()
+    }
+
     const { error } = await sb.from('user_profiles')
       .upsert(payload, { onConflict: 'user_id' })
 
     if (error) throw error
-    showAlert('บันทึกการตั้งค่าเรียบร้อยแล้ว ✓', 'success')
 
+    if (qrUrl && qrUrl !== existingQrUrl) {
+      existingQrUrl = qrUrl
+      qrFile = null
+    }
+
+    showAlert('บันทึกการตั้งค่าเรียบร้อยแล้ว ✓', 'success')
   } catch(err) {
     console.error(err)
     showAlert('เกิดข้อผิดพลาด: ' + err.message, 'error')
@@ -368,20 +476,24 @@ function setSaving(on) {
   document.getElementById('save-spin').classList.toggle('hidden', !on)
 }
 
-/* ─── HELPERS ─────────────────────────── */
-function showAlert(msg, type='success') {
+function showAlert(msg, type = 'success') {
   const el = document.getElementById('alert')
   el.className = `mb-6 px-4 py-3 rounded-xl text-sm font-medium ${
-    type==='error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'
+    type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'
   }`
   el.textContent = msg
   el.classList.remove('hidden')
   clearTimeout(el._t)
-  if (type !== 'error') el._t = setTimeout(()=>el.classList.add('hidden'), 4000)
+  if (type !== 'error') el._t = setTimeout(() => el.classList.add('hidden'), 4000)
+  else el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
 }
 
 async function logout() {
-  await sb.auth.signOut(); location.href='index.html'
+  await sb.auth.signOut(); location.href = 'index.html'
 }
 
 init()
