@@ -456,6 +456,14 @@
         <!-- Totals -->
         <div class="totals-section" style="padding:0 0 0 0;">
           <div class="totals-box">
+            <div class="total-row" id="t-gross-row" style="display:none;">
+              <span class="total-label">มูลค่าสินค้ารวม</span>
+              <span class="total-value" id="t-gross">—</span>
+            </div>
+            <div class="total-row" id="t-item-disc-row" style="display:none;">
+              <span class="total-label" style="color:#d97706;">ส่วนลดรายการรวม</span>
+              <span class="total-value" style="color:#d97706;" id="t-item-disc">—</span>
+            </div>
             <div class="total-row" style="background:#f0faf4;">
               <span class="total-label" style="color:#1a5c38;font-weight:600;">ยอดรวม</span>
               <span class="total-value" style="color:#1a5c38;font-weight:700;" id="t-subtotal">—</span>
@@ -704,6 +712,16 @@
     }
 
     // Totals
+    // ── มูลค่าสินค้ารวม (ก่อนหักส่วนลดรายการ) และ ส่วนลดรายการรวม ──
+    const totalGross    = items.reduce((s, i) => s + (i.quantity || 0) * (i.unit_price || 0), 0)
+    const totalItemDisc = items.reduce((s, i) => s + (i.discount || 0), 0)
+    if (hasItemDiscount) {
+      document.getElementById('t-gross-row').style.display     = ''
+      document.getElementById('t-item-disc-row').style.display = ''
+      document.getElementById('t-gross').textContent     = fmt(totalGross)
+      document.getElementById('t-item-disc').textContent = '-' + fmt(totalItemDisc)
+    }
+
     document.getElementById('t-subtotal').textContent = fmt(doc.subtotal)
 
     const discBeforeRows = document.getElementById('t-disc-before-rows')
