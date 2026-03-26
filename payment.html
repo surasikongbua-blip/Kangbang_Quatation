@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ช่องทางชำระเงิน — Kang Bang</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --green: #1a5c38;
+      --green2: #2d7a50;
+      --green-light: #e8f5ee;
+      --accent: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background: #eef2ef;
+      min-height: 100vh;
+    }
+
+    /* ── TOOLBAR ── */
+    #toolbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: var(--green);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; height: 52px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.2);
+    }
+    .toolbar-left { display: flex; align-items: center; gap: 12px; }
+    .toolbar-brand { color: #fff; font-weight: 700; font-size: 16px; display: flex; align-items: center; gap-8px; }
+    .toolbar-back { color: #86efac; font-size: 13px; text-decoration: none; }
+    .toolbar-back:hover { color: #fff; }
+    .toolbar-sep { color: rgba(255,255,255,.3); }
+    .btn-toolbar {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: 8px;
+      font-size: 13px; font-weight: 600; font-family: 'Sarabun', sans-serif;
+      cursor: pointer; border: none; transition: all .15s;
+    }
+    .btn-save-img { background: #fff; color: var(--green); }
+    .btn-save-img:hover { background: var(--green-light); }
+    .btn-save-img:disabled { opacity: .6; cursor: not-allowed; }
+
+    /* ── PAGE ── */
+    #page-wrap {
+      padding: 68px 16px 40px;
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+    }
+
+    /* ── PAYMENT CARD (the thing we screenshot) ── */
+    #payment-card {
+      width: 100%;
+      max-width: 480px;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 8px 48px rgba(26,92,56,.16);
+      overflow: hidden;
+    }
+
+    /* ── CARD HEADER ── */
+    .card-header {
+      background: linear-gradient(135deg, var(--green) 0%, var(--green2) 100%);
+      padding: 28px 32px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card-header::before {
+      content: '';
+      position: absolute; top: -40px; right: -40px;
+      width: 160px; height: 160px; border-radius: 50%;
+      background: rgba(255,255,255,.07);
+    }
+    .card-header::after {
+      content: '';
+      position: absolute; bottom: -60px; right: 40px;
+      width: 180px; height: 180px; border-radius: 50%;
+      background: rgba(255,255,255,.05);
+    }
+    .company-logo-row {
+      display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
+    }
+    .logo-circle {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; flex-shrink: 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15);
+    }
+    .logo-circle img { width: 100%; height: 100%; object-fit: contain; }
+    .company-texts .company-name {
+      color: #fff; font-size: 15px; font-weight: 700; line-height: 1.3;
+    }
+    .company-texts .company-sub {
+      color: rgba(255,255,255,.65); font-size: 11px; margin-top: 2px; line-height: 1.5;
+    }
+    .header-title {
+      color: #fff; font-size: 22px; font-weight: 800; letter-spacing: -.01em;
+      position: relative; z-index: 1;
+    }
+    .header-subtitle {
+      color: rgba(255,255,255,.7); font-size: 12px; margin-top: 4px;
+      position: relative; z-index: 1;
+    }
+
+    /* ── CARD BODY ── */
+    .card-body { padding: 28px 32px 32px; }
+
+    /* ── BANK SECTION ── */
+    .section-label {
+      font-size: 10px; font-weight: 700; color: #6b8c7a;
+      text-transform: uppercase; letter-spacing: .08em;
+      margin-bottom: 10px;
+    }
+    .bank-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+    .bank-row {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--green-light);
+      border-radius: 14px; padding: 14px 16px;
+      border: 1.5px solid #d1e8da;
+      transition: border-color .15s;
+    }
+    .bank-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,.1);
+    }
+    .bank-info { flex: 1; min-width: 0; }
+    .bank-name { font-size: 12px; font-weight: 600; color: #4a7a60; }
+    .bank-account-name { font-size: 13px; font-weight: 700; color: #1a2e24; }
+    .bank-account-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 16px; font-weight: 600; color: var(--green);
+      letter-spacing: .04em;
+    }
+    .copy-btn {
+      background: none; border: none; cursor: pointer;
+      color: #a0b8ae; padding: 4px; border-radius: 6px;
+      transition: all .15s; flex-shrink: 0;
+    }
+    .copy-btn:hover { color: var(--green); background: #d1e8da; }
+    .copy-btn.copied { color: var(--green); }
+
+    /* ── DIVIDER ── */
+    .divider {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 20px;
+    }
+    .divider-line { flex: 1; height: 1px; background: #e5ece9; }
+    .divider-text { font-size: 11px; color: #a0b8ae; font-weight: 600; letter-spacing: .04em; }
+
+    /* ── QR SECTION ── */
+    .qr-section {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .qr-frame {
+      width: 200px; height: 200px;
+      border: 2.5px solid #d1e8da; border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; background: #fafcfb;
+      position: relative;
+    }
+    .qr-frame img { width: 100%; height: 100%; object-fit: contain; }
+    .qr-label { font-size: 12px; color: #6b8c7a; font-weight: 600; }
+    .qr-sub { font-size: 11px; color: #a0b8ae; text-align: center; }
+
+    /* ── EMPTY STATE ── */
+    .empty-payment {
+      text-align: center; padding: 40px 20px;
+      color: #a0b8ae;
+    }
+    .empty-payment .emoji { font-size: 40px; margin-bottom: 12px; }
+    .empty-payment p { font-size: 14px; }
+    .empty-payment a { color: var(--green); font-weight: 600; text-decoration: none; }
+    .empty-payment a:hover { text-decoration: underline; }
+
+    /* ── CARD FOOTER ── */
+    .card-footer {
+      border-top: 1px solid #edf2ef;
+      padding: 14px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: #fafcfb;
+    }
+    .footer-note { font-size: 10.5px; color: #a0b8ae; line-height: 1.5; }
+    .footer-brand { font-size: 10px; color: #c8ddd3; font-weight: 600; }
+
+    /* ── NOTES BOX ── */
+    .notes-box {
+      background: #fffbeb;
+      border: 1.5px solid #fde68a;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-top: 20px;
+    }
+    .notes-box .notes-label { font-size: 10px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+    .notes-box .notes-text { font-size: 13px; color: #78350f; line-height: 1.5; }
+
+    /* ── LOADING SPINNER ── */
+    #loading-overlay {
+      position: fixed; inset: 0; background: #eef2ef;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; flex-direction: column; gap: 14px;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid #c8ddd3; border-top-color: var(--green);
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: #1a2e24; color: #fff;
+      padding: 10px 20px; border-radius: 12px;
+      font-size: 13px; font-weight: 600;
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+      z-index: 999; pointer-events: none; white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── PRINT / SCREENSHOT HIDE ── */
+    .no-screenshot { }
+    @media print {
+      #toolbar, .no-screenshot { display: none !important; }
+      body { background: #fff !important; }
+      #page-wrap { padding: 0 !important; }
+      #payment-card { box-shadow: none !important; max-width: 100% !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <p style="color:var(--green);font-size:14px;font-weight:600;">กำลังโหลด...</p>
+</div>
+
+<!-- Toast -->
+<div id="toast">📋 คัดลอกแล้ว!</div>
+
+<!-- Toolbar -->
+<div id="toolbar">
+  <div class="toolbar-left">
+    <a href="dashboard.html" class="toolbar-back">← กลับ</a>
+    <span class="toolbar-sep">|</span>
+    <span style="color:#fff;font-weight:700;">💳 ช่องทางชำระเงิน</span>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <a href="settings.html#payment" class="btn-toolbar no-screenshot" style="background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.3);display:flex;align-items:center;gap:6px;">
+      ⚙️ ตั้งค่า
+    </a>
+    <button class="btn-toolbar btn-save-img no-screenshot" onclick="saveAsImage()" id="btn-dl">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+      </svg>
+      บันทึกรูป
+    </button>
+  </div>
+</div>
+
+<!-- Page -->
+<div id="page-wrap">
+
+  <!-- Payment Card -->
+  <div id="payment-card">
+
+    <!-- Header -->
+    <div class="card-header">
+      <div class="company-logo-row">
+        <div class="logo-circle" id="logo-wrap">
+          <img src="https://ygdcbkhaqsaiyymxvrph.supabase.co/storage/v1/object/public/company-assets/logos/46adc746-1a88-4361-a833-9e2a73a111ad.png"
+               alt="logo" crossorigin="anonymous"
+               onerror="this.parentElement.innerHTML='<span style=font-size:24px>🏢</span>'"/>
+        </div>
+        <div class="company-texts">
+          <div class="company-name">บริษัท คัง ปั้ง วัสดุก่อสร้าง จำกัด</div>
+          <div class="company-sub">เลขภาษี: 0 1155 66014 56 8</div>
+        </div>
+      </div>
+      <div class="header-title">ช่องทางชำระเงิน</div>
+      <div class="header-subtitle">Payment Methods · สแกน QR หรือโอนผ่านบัญชีด้านล่าง</div>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body" id="payment-body">
+      <!-- filled by JS -->
+    </div>
+
+    <!-- Footer -->
+    <div class="card-footer">
+      <div class="footer-note">กรุณาระบุชื่อ-นามสกุลและยอดโอน<br/>พร้อมส่งหลักฐานการโอน</div>
+      <div class="footer-brand">KANG BANG SYSTEM</div>
+    </div>
+
+  </div>
+
+  <!-- Contact info below card (no-screenshot) -->
+  <div id="contact-strip" class="no-screenshot" style="max-width:480px;width:100%;display:none;">
+    <div style="background:#fff;border-radius:16px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 12px rgba(0,0,0,.06);">
+      <span style="font-size:20px;">📞</span>
+      <div>
+        <div style="font-size:11px;color:#6b8c7a;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">ติดต่อสอบถาม</div>
+        <div id="contact-text" style="font-size:14px;color:#1a2e24;font-weight:600;margin-top:2px;"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://ygdcbkhaqsaiyymxvrph.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnZGNia2hhcXNhaXl5bXh2cnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzY4NTMsImV4cCI6MjA4ODYxMjg1M30.1quRttxAsp4b9471rdUh0zkdx97tfK9pW__0Bh3RWY0'
+  const { createClient } = supabase
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  const BANK_META = {
+    'kbank':    { name: 'ธนาคารกสิกรไทย',      emoji: '💚', color: '#1ba03b' },
+    'scb':      { name: 'ธนาคารไทยพาณิชย์',    emoji: '💜', color: '#4e2d8a' },
+    'bbl':      { name: 'ธนาคารกรุงเทพ',        emoji: '💙', color: '#1e3a8a' },
+    'ktb':      { name: 'ธนาคารกรุงไทย',        emoji: '🩵', color: '#0ea5e9' },
+    'bay':      { name: 'ธนาคารกรุงศรีอยุธยา', emoji: '🟡', color: '#f59e0b' },
+    'tmb':      { name: 'ธนาคารทหารไทย (TTB)', emoji: '🟠', color: '#f97316' },
+    'gsb':      { name: 'ธนาคารออมสิน',         emoji: '🩷', color: '#ec4899' },
+    'baac':     { name: 'ธ.ก.ส.',                emoji: '🌿', color: '#15803d' },
+    'promptpay':{ name: 'พร้อมเพย์ (PromptPay)', emoji: '🏦', color: '#1a5c38' },
+    'other':    { name: 'บัญชีอื่น',             emoji: '🏧', color: '#6b7280' },
+  }
+
+  async function init() {
+    const { data: { session } } = await sb.auth.getSession()
+    if (!session) { window.location.href = 'index.html'; return }
+
+    const { data: profile } = await sb.from('user_profiles')
+      .select('*').eq('user_id', session.user.id).single()
+
+    renderPaymentCard(profile || {})
+    document.getElementById('loading-overlay').style.display = 'none'
+  }
+
+  function renderPaymentCard(profile) {
+    const body = document.getElementById('payment-body')
+    const accounts = profile.payment_accounts || []
+    const qrUrl    = profile.payment_qr_url || ''
+    const notes    = profile.payment_notes || ''
+    const hasBanks = accounts.length > 0
+
+    // Contact strip
+    const contactParts = []
+    if (profile.phone) contactParts.push('📞 ' + profile.phone)
+    if (profile.contact_email) contactParts.push('✉️ ' + profile.contact_email)
+    if (contactParts.length) {
+      document.getElementById('contact-text').textContent = contactParts.join('  ·  ')
+      document.getElementById('contact-strip').style.display = ''
+    }
+
+    if (!hasBanks && !qrUrl) {
+      body.innerHTML = `
+        <div class="empty-payment">
+          <div class="emoji">💳</div>
+          <p>ยังไม่มีข้อมูลการชำระเงิน<br/>
+          <a href="settings.html#payment">ตั้งค่าช่องทางชำระเงิน</a> ก่อนนะครับ</p>
+        </div>`
+      return
+    }
+
+    let html = ''
+
+    // Bank accounts
+    if (hasBanks) {
+      html += `<div class="section-label">บัญชีธนาคาร</div>`
+      html += `<div class="bank-rows">`
+      accounts.forEach((acc, i) => {
+        const meta = BANK_META[acc.bank] || BANK_META['other']
+        html += `
+          <div class="bank-row">
+            <div class="bank-icon" style="color:${meta.color}">${meta.emoji}</div>
+            <div class="bank-info">
+              <div class="bank-name">${meta.name}</div>
+              <div class="bank-account-name">${esc(acc.account_name)}</div>
+              <div class="bank-account-num">${esc(acc.account_number)}</div>
+            </div>
+            <button class="copy-btn" onclick="copyText('${esc(acc.account_number)}', this)" title="คัดลอกเลขบัญชี">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+              </svg>
+            </button>
+          </div>`
+      })
+      html += `</div>`
+    }
+
+    // QR Code
+    if (qrUrl) {
+      if (hasBanks) {
+        html += `<div class="divider"><div class="divider-line"></div><div class="divider-text">หรือ สแกน QR Code</div><div class="divider-line"></div></div>`
+      } else {
+        html += `<div class="section-label">QR Code ชำระเงิน</div>`
+      }
+      html += `
+        <div class="qr-section">
+          <div class="qr-frame">
+            <img src="${qrUrl}" alt="QR Code" crossorigin="anonymous"
+              onerror="this.parentElement.innerHTML='<span style=color:#a0b8ae;font-size:13px>โหลดรูปไม่ได้</span>'"/>
+          </div>
+          <div class="qr-label">สแกนเพื่อชำระเงิน</div>
+          <div class="qr-sub">รองรับ PromptPay · True Money · K PLUS · SCB Easy</div>
+        </div>`
+    }
+
+    // Notes
+    if (notes) {
+      html += `
+        <div class="notes-box">
+          <div class="notes-label">หมายเหตุ</div>
+          <div class="notes-text">${esc(notes)}</div>
+        </div>`
+    }
+
+    body.innerHTML = html
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  }
+
+  function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.classList.add('copied')
+      btn.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`
+      showToast('📋 คัดลอก ' + text + ' แล้ว!')
+      setTimeout(() => {
+        btn.classList.remove('copied')
+        btn.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>`
+      }, 2000)
+    })
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast')
+    t.textContent = msg
+    t.classList.add('show')
+    setTimeout(() => t.classList.remove('show'), 2500)
+  }
+
+  async function saveAsImage() {
+    const card = document.getElementById('payment-card')
+    const btn  = document.getElementById('btn-dl')
+    const origHtml = btn.innerHTML
+    btn.disabled = true
+    btn.innerHTML = '⏳ กำลังบันทึก...'
+
+    // Hide no-screenshot elements temporarily
+    document.querySelectorAll('.no-screenshot').forEach(el => el.style.visibility = 'hidden')
+    document.getElementById('toolbar').style.display = 'none'
+
+    try {
+      const canvas = await html2canvas(card, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      })
+      const link = document.createElement('a')
+      link.download = 'payment-kang-bang.png'
+      link.href = canvas.toDataURL('image/png', 1.0)
+      link.click()
+      showToast('✅ บันทึกรูปแล้ว!')
+    } catch(e) {
+      alert('บันทึกรูปไม่ได้: ' + e.message)
+    }
+
+    document.querySelectorAll('.no-screenshot').forEach(el => el.style.visibility = '')
+    document.getElementById('toolbar').style.display = ''
+    btn.disabled = false
+    btn.innerHTML = origHtml
+  }
+
+  init()
+</script>
+</body>
+</html>
