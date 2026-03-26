@@ -50,7 +50,6 @@
     .btn-primary:hover, .btn-primary:active { background: #e8f5ee; }
     .btn-sign { background: #f59e0b; color: #fff; border: none; }
     .btn-sign:hover, .btn-sign:active { background: #d97706; }
-    /* Desktop: single row */
     @media (min-width: 640px) {
       #toolbar { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 56px; }
       .toolbar-row1 { padding: 0; height: auto; border: none; flex: 1; }
@@ -68,7 +67,7 @@
 
     /* ── DOCUMENT PAPER ── */
     #document-paper {
-      width: 794px; /* A4 */
+      width: 794px;
       background: #fff;
       box-shadow: 0 4px 40px rgba(0,0,0,.13);
       border-radius: 4px;
@@ -145,13 +144,13 @@
       padding: 8px 10px; text-align: left;
       letter-spacing: .04em; text-transform: uppercase;
     }
-    /* หน่วย(4) จำนวน(5) = center | ราคา/หน่วย(6) ราคารวม(7) ส่วนลด(8) ยอดสุทธิ(9) = right */
     .items-table thead th:nth-child(4),
     .items-table thead th:nth-child(5) { text-align: center; }
     .items-table thead th:nth-child(6),
     .items-table thead th:nth-child(7),
     .items-table thead th:nth-child(8),
-    .items-table thead th:nth-child(9) { text-align: right; }
+    .items-table thead th:nth-child(9),
+    .items-table thead th:nth-child(10) { text-align: right; }
 
     .items-table tbody tr { border-bottom: 1px solid #edf2ef; }
     .items-table tbody tr:nth-child(even) { background: #f9fcfa; }
@@ -279,16 +278,13 @@
     .btn-apply-sig { padding: 8px 20px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
     .btn-apply-sig:hover { background: var(--accent); }
 
-    /* Hide zoom controls (removed feature) */
     #zoom-controls, #mobile-hint { display: none !important; }
 
-    /* ── FORCE COLORS EVERYWHERE ── */
     * {
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
 
-    /* ── PRINT STYLES ── */
     @media print {
       @page { size: A4 portrait; margin: 10mm 12mm; }
       html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
@@ -332,7 +328,6 @@
     </div>
   </div>
   <div class="toolbar-row2 no-print">
-    <!-- Zoom controls — mobile only -->
     <div id="zoom-controls">
       <button onclick="zoomOut()">−</button>
       <span id="zoom-label">100%</span>
@@ -449,22 +444,30 @@
               <th style="width:55px;">หน่วย</th>
               <th style="width:90px;">ราคา/หน่วย</th>
               <th style="width:90px;">ราคารวม</th>
+              <th style="width:85px;" id="col-disc-unit-header">ส่วนลด/หน่วย</th>
               <th style="width:85px;" id="col-discount-header">ส่วนลด</th>
               <th style="width:100px;">ยอดสุทธิ</th>
             </tr>
           </thead>
           <tbody id="items-tbody">
-            <tr><td colspan="9" style="text-align:center;padding:20px;color:#a0b8ae;">กำลังโหลด...</td></tr>
+            <tr><td colspan="10" style="text-align:center;padding:20px;color:#a0b8ae;">กำลังโหลด...</td></tr>
           </tbody>
         </table>
         <!-- Totals -->
         <div class="totals-section" style="padding:0 0 0 0;">
           <div class="totals-box">
+            <div class="total-row" id="t-gross-row" style="display:none;">
+              <span class="total-label">มูลค่าสินค้ารวม</span>
+              <span class="total-value" id="t-gross">—</span>
+            </div>
+            <div class="total-row" id="t-item-disc-row" style="display:none;">
+              <span class="total-label" style="color:#d97706;">ส่วนลดรายการรวม</span>
+              <span class="total-value" style="color:#d97706;" id="t-item-disc">—</span>
+            </div>
             <div class="total-row">
               <span class="total-label">ยอดรวม</span>
               <span class="total-value" id="t-subtotal">—</span>
             </div>
-            <!-- ส่วนลดก่อน VAT (dynamic rows) -->
             <div id="t-disc-before-rows"></div>
             <div class="total-row" id="t-vat-row">
               <span class="total-label" id="t-vat-label">VAT 7%</span>
@@ -474,7 +477,6 @@
               <span class="total-label">ค่าขนส่ง</span>
               <span class="total-value" id="t-shipping">—</span>
             </div>
-            <!-- ส่วนลดหลัง VAT (dynamic rows) -->
             <div id="t-disc-after-rows"></div>
             <div class="total-row grand">
               <span class="total-label">ยอดสุทธิ</span>
@@ -495,17 +497,14 @@
 
       <!-- Signature Area -->
       <div class="signature-section">
-        <!-- Left signature -->
         <div class="sig-box" id="sig-seller-box">
           <canvas id="sig-canvas-seller" width="200" height="55" style="width:200px;height:55px;"></canvas>
           <button class="sig-clear-btn no-print" onclick="clearSig('seller')" title="ล้างลายเซ็น">✕ ล้าง</button>
           <div class="sig-label" id="sig-seller-label">ผู้เสนอราคา / Authorized Signature</div>
           <div class="sig-name" id="sig-seller-name">—</div>
           <div class="sig-date" id="sig-seller-date">วันที่: ________</div>
-          <!-- badge แสดงหลัง save สำเร็จ -->
           <div id="sig-saved-badge" class="hidden no-print" style="position:absolute;top:6px;left:6px;background:#22c55e;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;font-family:Sarabun,sans-serif;">✓ บันทึกแล้ว</div>
         </div>
-        <!-- Right signature -->
         <div class="sig-box" id="sig-buyer-box">
           <canvas id="sig-canvas-buyer" width="200" height="55" style="width:200px;height:55px;"></canvas>
           <div class="sig-label" id="sig-buyer-label">ผู้รับเอกสาร / Received By</div>
@@ -530,12 +529,10 @@
   </div><!-- /document-paper -->
 </div><!-- /page-wrap -->
 
-<!-- Mobile hint -->
 <div id="mobile-hint">↔ เลื่อนซ้าย-ขวาเพื่อดูเอกสาร A4 · บีบ/ขยายนิ้วเพื่อ Zoom</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-  /* ── SUPABASE ── */
   const SUPABASE_URL = 'https://ygdcbkhaqsaiyymxvrph.supabase.co'
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnZGNia2hhcXNhaXl5bXh2cnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzY4NTMsImV4cCI6MjA4ODYxMjg1M30.1quRttxAsp4b9471rdUh0zkdx97tfK9pW__0Bh3RWY0'
   const { createClient } = supabase
@@ -561,7 +558,6 @@
     const pos   = ['','สิบ','ร้อย','พัน','หมื่น','แสน','ล้าน']
 
     function readGroup(n) {
-      // n is 1–999999
       if (n === 0) return ''
       if (n >= 1000000) {
         return readGroup(Math.floor(n / 1000000)) + 'ล้าน' + readGroup(n % 1000000)
@@ -571,7 +567,6 @@
       for (let i = digits.length - 1; i >= 0; i--) {
         const d = parseInt(digits[i])
         if (d === 0) continue
-        // special: สิบเอ็ด (11), ยี่สิบ (20-29)
         if (i === 1 && d === 1) result += 'สิบ'
         else if (i === 1) result += tens[d]
         else if (i === 0 && d === 1 && digits.length > 1) result += 'เอ็ด'
@@ -593,6 +588,7 @@
     }
     return result
   }
+
   function fmtDate(d) {
     if (!d) return '—'
     return new Date(d).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -603,7 +599,6 @@
   let currentUserId = null
   let currentProfile = {}
 
-  /* ── INIT ── */
   async function init() {
     const params = new URLSearchParams(window.location.search)
     docId = params.get('id')
@@ -613,7 +608,6 @@
     if (!session) { window.location.href = 'index.html'; return }
     currentUserId = session.user.id
 
-    // Load document + items + user profile in parallel
     const [docRes, itemsRes, profileRes] = await Promise.all([
       sb.from('documents').select('*').eq('id', docId).single(),
       sb.from('document_items').select('*').eq('document_id', docId).order('sort_order'),
@@ -635,7 +629,6 @@
     document.getElementById('loading-overlay').style.display = 'none'
   }
 
-  // โหลดลายเซ็นที่บันทึกไว้จาก profile มาแสดงบน canvas
   function loadSavedSignature(profile) {
     if (!profile.sig_seller) return
     const canvas = document.getElementById('sig-canvas-seller')
@@ -649,24 +642,19 @@
     img.src = profile.sig_seller
   }
 
-  /* ── RENDER ── */
   function renderDocument(doc, items, profile) {
-    // Logo — hardcoded company logo
     const logoWrap = document.getElementById('logo-wrap')
     logoWrap.innerHTML = `<img src="https://ygdcbkhaqsaiyymxvrph.supabase.co/storage/v1/object/public/company-assets/logos/46adc746-1a88-4361-a833-9e2a73a111ad.png" alt="logo" crossorigin="anonymous" onerror="this.parentElement.innerHTML='<span style=font-size:28px>🏢</span>'"/>`
 
-    // Contact in header
     const contactParts = []
     if (profile.phone) contactParts.push('📞 ' + profile.phone)
     if (profile.contact_email) contactParts.push('✉️ ' + profile.contact_email)
     if (contactParts.length) document.getElementById('header-contact').textContent = contactParts.join('  ·  ')
 
-    // Type badge + number
     document.getElementById('doc-type-badge').textContent = DOC_TYPE_LABEL[doc.doc_type] || doc.doc_type
     document.getElementById('doc-number-display').textContent = doc.doc_number
     document.getElementById('doc-date-display').textContent = 'วันที่: ' + fmtDate(doc.issue_date)
 
-    // Customer info
     document.getElementById('info-customer-name').textContent    = doc.customer_name || '—'
     document.getElementById('info-customer-phone').textContent   = doc.customer_phone || '—'
     document.getElementById('info-customer-address').textContent = doc.customer_address || '—'
@@ -684,12 +672,22 @@
     // Items
     const tbody = document.getElementById('items-tbody')
     const hasItemDiscount = items.some(i => (i.discount || 0) > 0)
-    document.getElementById('col-discount-header').style.display = hasItemDiscount ? '' : 'none'
+
+    // ซ่อน/แสดงคอลัมน์ส่วนลด/หน่วย และ ส่วนลด พร้อมกัน
+    document.getElementById('col-disc-unit-header').style.display = hasItemDiscount ? '' : 'none'
+    document.getElementById('col-discount-header').style.display  = hasItemDiscount ? '' : 'none'
+
     if (!items.length) {
-      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:#a0b8ae;">ไม่มีรายการสินค้า</td></tr>`
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:20px;color:#a0b8ae;">ไม่มีรายการสินค้า</td></tr>`
     } else {
       tbody.innerHTML = items.map((item, i) => {
-        const gross = (item.quantity || 0) * (item.unit_price || 0)
+        const qty          = item.quantity || 0
+        const unitPrice    = item.unit_price || 0
+        const discount     = item.discount || 0
+        const gross        = qty * unitPrice
+        // ── คำนวณส่วนลด/หน่วย ──
+        const discPerUnit  = (discount > 0 && qty > 0) ? discount / qty : 0
+
         return `
         <tr>
           <td style="color:#8aaa98;font-size:12px;">${i + 1}</td>
@@ -698,22 +696,34 @@
             <div class="item-name">${item.product_name || '—'}</div>
             ${item.description ? `<div class="item-desc">${item.description}</div>` : ''}
           </td>
-          <td class="item-center">${Number(item.quantity).toLocaleString('th-TH')}</td>
+          <td class="item-center">${Number(qty).toLocaleString('th-TH')}</td>
           <td class="item-center">${item.unit || '—'}</td>
-          <td class="item-num">${fmt(item.unit_price)}</td>
+          <td class="item-num">${fmt(unitPrice)}</td>
           <td class="item-num">${fmt(gross)}</td>
           <td class="item-num" style="color:#d97706;display:${hasItemDiscount ? '' : 'none'};">
-            ${(item.discount || 0) > 0 ? '-' + fmt(item.discount) : '—'}
+            ${discPerUnit > 0 ? '-' + fmt(discPerUnit) : '—'}
+          </td>
+          <td class="item-num" style="color:#d97706;display:${hasItemDiscount ? '' : 'none'};">
+            ${discount > 0 ? '-' + fmt(discount) : '—'}
           </td>
           <td class="item-num" style="font-weight:600;">${fmt(item.total_price)}</td>
         </tr>`
       }).join('')
     }
 
+    // ── มูลค่าสินค้ารวม (ก่อนหักส่วนลดรายการ) และ ส่วนลดรายการรวม ──
+    const totalGross    = items.reduce((s, i) => s + (i.quantity || 0) * (i.unit_price || 0), 0)
+    const totalItemDisc = items.reduce((s, i) => s + (i.discount || 0), 0)
+    if (hasItemDiscount) {
+      document.getElementById('t-gross-row').style.display    = ''
+      document.getElementById('t-item-disc-row').style.display = ''
+      document.getElementById('t-gross').textContent    = fmt(totalGross)
+      document.getElementById('t-item-disc').textContent = '-' + fmt(totalItemDisc)
+    }
+
     // Totals
     document.getElementById('t-subtotal').textContent = fmt(doc.subtotal)
 
-    // ส่วนลดก่อน VAT — render rows with label
     const discBeforeRows = document.getElementById('t-disc-before-rows')
     discBeforeRows.innerHTML = ''
     let discBeforeArr = []
@@ -741,7 +751,6 @@
       document.getElementById('t-shipping-row').style.display = 'none'
     }
 
-    // ส่วนลดหลัง VAT — render rows with label
     const discAfterRows = document.getElementById('t-disc-after-rows')
     discAfterRows.innerHTML = ''
     let discAfterArr = []
@@ -760,26 +769,15 @@
     document.getElementById('t-grand').textContent = fmt(doc.total)
     document.getElementById('t-grand-text').textContent = thaiMoney(doc.total)
 
-    // Notes
     if (doc.notes) {
       document.getElementById('notes-section').style.display = ''
       document.getElementById('notes-text').textContent = doc.notes
     }
 
-    // Signatures — labels depend on doc type
     const SIG_LABELS = {
-      quotation: {
-        seller: 'ผู้เสนอราคา / Authorized Signature',
-        buyer:  'ผู้รับเอกสาร / Received By',
-      },
-      receipt: {
-        seller: 'ผู้รับเงิน / Cashier',
-        buyer:  'ผู้ชำระเงิน / Payer',
-      },
-      delivery: {
-        seller: 'ผู้ส่งสินค้า / Delivered By',
-        buyer:  'ผู้รับสินค้า / Received By',
-      },
+      quotation: { seller: 'ผู้เสนอราคา / Authorized Signature', buyer: 'ผู้รับเอกสาร / Received By' },
+      receipt:   { seller: 'ผู้รับเงิน / Cashier',               buyer: 'ผู้ชำระเงิน / Payer' },
+      delivery:  { seller: 'ผู้ส่งสินค้า / Delivered By',         buyer: 'ผู้รับสินค้า / Received By' },
     }
     const sigLabels = SIG_LABELS[doc.doc_type] || SIG_LABELS.quotation
     document.getElementById('sig-seller-label').textContent = sigLabels.seller
@@ -788,9 +786,8 @@
     const sellerName = profile.display_name || 'ผู้ออกเอกสาร'
     document.getElementById('sig-seller-name').textContent = sellerName
     document.getElementById('sig-seller-date').textContent = 'วันที่: ' + fmtDate(doc.issue_date)
-    document.getElementById('sig-buyer-name').textContent = doc.customer_name || 'ลูกค้า'
+    document.getElementById('sig-buyer-name').textContent  = doc.customer_name || 'ลูกค้า'
 
-    // Footer
     document.getElementById('footer-printed-at').textContent =
       new Date().toLocaleString('th-TH', { dateStyle: 'long', timeStyle: 'short' })
     document.getElementById('footer-doc-number').textContent = doc.doc_number
@@ -801,8 +798,8 @@
     window.location.href = `document-new.html?id=${docId}`
   }
 
-  /* ── SIGNATURE on document ── */
-  let sigTarget = 'seller' // 'seller' | 'buyer'
+  /* ── SIGNATURE ── */
+  let sigTarget = 'seller'
   let modalCtx = null
   let modalDrawing = false
 
@@ -858,7 +855,6 @@
 
   function applySignature() {
     const src = document.getElementById('sig-canvas-modal')
-    // Check if empty
     const imgData = modalCtx.getImageData(0, 0, src.width, src.height)
     if (!imgData.data.some(v => v !== 0)) { alert('กรุณาเซ็นลายเซ็นก่อน'); return }
 
@@ -870,10 +866,8 @@
     const tempImg = new Image()
     tempImg.onload = async () => {
       dCtx.drawImage(tempImg, 0, 0, dest.width, dest.height)
-      // Show clear button (seller only)
       if (sigTarget === 'seller') {
         document.querySelector('#sig-seller-box .sig-clear-btn').style.display = ''
-        // Auto-save ลายเซ็นลง user_profiles
         const base64 = dest.toDataURL('image/png')
         await sb.from('user_profiles').upsert({
           user_id: currentUserId,
@@ -901,7 +895,6 @@
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
     if (who === 'seller') {
       document.querySelector('#sig-seller-box .sig-clear-btn').style.display = 'none'
-      // ลบลายเซ็นออกจาก DB ด้วย
       await sb.from('user_profiles').upsert({
         user_id: currentUserId,
         sig_seller: null,
@@ -911,7 +904,6 @@
     }
   }
 
-  /* ── SAVE AS IMAGE — A4 crisp render ── */
   async function saveAsImage() {
     const paper = document.getElementById('document-paper')
     const btn = event.currentTarget
@@ -919,13 +911,11 @@
     btn.innerHTML = '<svg class="animate-spin" width="14" height="14" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-dashoffset="12"/></svg> กำลังบันทึก...'
     btn.disabled = true
 
-    // Hide toolbar & no-print elements
     const toolbar = document.getElementById('toolbar')
     const noprints = document.querySelectorAll('.no-print')
     toolbar.style.display = 'none'
     noprints.forEach(el => el.style.visibility = 'hidden')
 
-    // Set paper to exact A4 width for render
     const origStyle = paper.style.cssText
     paper.style.width = '794px'
     paper.style.boxShadow = 'none'
@@ -939,16 +929,9 @@
         logging: false,
         windowWidth: 794,
         onclone: (clonedDoc) => {
-          // Force all background colors in clone
-          clonedDoc.querySelectorAll('.doc-header').forEach(el => {
-            el.style.backgroundColor = '#1a5c38'
-          })
-          clonedDoc.querySelectorAll('.items-table thead tr').forEach(el => {
-            el.style.backgroundColor = '#1a5c38'
-          })
-          clonedDoc.querySelectorAll('.total-row.grand').forEach(el => {
-            el.style.backgroundColor = '#1a5c38'
-          })
+          clonedDoc.querySelectorAll('.doc-header').forEach(el => { el.style.backgroundColor = '#1a5c38' })
+          clonedDoc.querySelectorAll('.items-table thead tr').forEach(el => { el.style.backgroundColor = '#1a5c38' })
+          clonedDoc.querySelectorAll('.total-row.grand').forEach(el => { el.style.backgroundColor = '#1a5c38' })
         }
       })
       const link = document.createElement('a')
@@ -966,19 +949,16 @@
     btn.disabled = false
   }
 
-  // Click outside modal to close
   document.getElementById('sig-modal').addEventListener('click', e => {
     if (e.target === document.getElementById('sig-modal')) closeSigModal()
   })
 
-  // Seller sig box — click to sign
   document.getElementById('sig-seller-box').addEventListener('click', e => {
     if (!e.target.classList.contains('sig-clear-btn')) openSigModal('seller')
   })
   document.getElementById('sig-buyer-box').addEventListener('click', () => openSigModal('buyer'))
 
   init()
-
 </script>
 </body>
 </html>
