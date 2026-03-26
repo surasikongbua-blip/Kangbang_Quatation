@@ -321,16 +321,16 @@
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
   const BANK_META = {
-    'kbank':    { name: 'ธนาคารกสิกรไทย',      emoji: '💚', color: '#1ba03b' },
-    'scb':      { name: 'ธนาคารไทยพาณิชย์',    emoji: '💜', color: '#4e2d8a' },
-    'bbl':      { name: 'ธนาคารกรุงเทพ',        emoji: '💙', color: '#1e3a8a' },
-    'ktb':      { name: 'ธนาคารกรุงไทย',        emoji: '🩵', color: '#0ea5e9' },
-    'bay':      { name: 'ธนาคารกรุงศรีอยุธยา', emoji: '🟡', color: '#f59e0b' },
-    'tmb':      { name: 'ธนาคารทหารไทย (TTB)', emoji: '🟠', color: '#f97316' },
-    'gsb':      { name: 'ธนาคารออมสิน',         emoji: '🩷', color: '#ec4899' },
-    'baac':     { name: 'ธ.ก.ส.',                emoji: '🌿', color: '#15803d' },
-    'promptpay':{ name: 'พร้อมเพย์ (PromptPay)', emoji: '🏦', color: '#1a5c38' },
-    'other':    { name: 'บัญชีอื่น',             emoji: '🏧', color: '#6b7280' },
+    'kbank':    { name: 'ธนาคารกสิกรไทย',      logo: 'https://ygdcbkhaqsaiyymxvrph.supabase.co/storage/v1/object/public/Image/KBank.png',  color: '#1ba03b' },
+    'scb':      { name: 'ธนาคารไทยพาณิชย์',    logo: 'https://ygdcbkhaqsaiyymxvrph.supabase.co/storage/v1/object/public/Image/SCB.png',   color: '#4e2d8a' },
+    'bbl':      { name: 'ธนาคารกรุงเทพ',        logo: 'https://ygdcbkhaqsaiyymxvrph.supabase.co/storage/v1/object/public/Image/bbl.png',   color: '#1e3a8a' },
+    'ktb':      { name: 'ธนาคารกรุงไทย',        logo: 'https://ygdcbkhaqsaiyymxvrph.supabase.co/storage/v1/object/public/Image/KTB.png',   color: '#0ea5e9' },
+    'bay':      { name: 'ธนาคารกรุงศรีอยุธยา', logo: 'https://ygdcbkhaqsaiyymxvrph.supabase.co/storage/v1/object/public/Image/Bay.png',   color: '#f59e0b' },
+    'tmb':      { name: 'ธนาคารทหารไทย (TTB)', logo: 'https://ygdcbkhaqsaiyymxvrph.supabase.co/storage/v1/object/public/Image/TTB.png',   color: '#f97316' },
+    'gsb':      { name: 'ธนาคารออมสิน',         logo: 'https://ygdcbkhaqsaiyymxvrph.supabase.co/storage/v1/object/public/Image/GSB.png',   color: '#ec4899' },
+    'baac':     { name: 'ธ.ก.ส.',                logo: 'https://ygdcbkhaqsaiyymxvrph.supabase.co/storage/v1/object/public/Image/BAAC.png',  color: '#15803d' },
+    'promptpay':{ name: 'พร้อมเพย์ (PromptPay)', logo: 'https://ygdcbkhaqsaiyymxvrph.supabase.co/storage/v1/object/public/Image/PP.png',    color: '#1a5c38' },
+    'other':    { name: 'บัญชีอื่น',             logo: null,                                                                                color: '#6b7280' },
   }
 
   async function init() {
@@ -380,7 +380,12 @@
         const meta = BANK_META[acc.bank] || BANK_META['other']
         html += `
           <div class="bank-row">
-            <div class="bank-icon" style="color:${meta.color}">${meta.emoji}</div>
+            <div class="bank-icon">
+              ${meta.logo
+                ? `<img src="${meta.logo}" alt="${meta.name}" crossorigin="anonymous" style="width:100%;height:100%;object-fit:contain;border-radius:8px;" onerror="this.parentElement.innerHTML='<span style=font-size:18px;color:${meta.color}>🏦</span>'">`
+                : `<span style="font-size:18px;color:${meta.color}">🏧</span>`
+              }
+            </div>
             <div class="bank-info">
               <div class="bank-name">${meta.name}</div>
               <div class="bank-account-name">${esc(acc.account_name)}</div>
