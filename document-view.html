@@ -533,8 +533,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-  const SUPABASE_URL = 'https://ygdcbkhaqsaiyymxvrph.supabase.co'
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnZGNia2hhcXNhaXl5bXh2cnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzY4NTMsImV4cCI6MjA4ODYxMjg1M30.1quRttxAsp4b9471rdUh0zkdx97tfK9pW__0Bh3RWY0'
+  const SUPABASE_URL = 'https://jiwpbwfbkblsfymouzsn.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imppd3Bid2Zia2Jsc2Z5bW91enNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NjI1MTQsImV4cCI6MjA5MjUzODUxNH0.nWBAQkojHc-ILA71IJJhUtyBcNW7a9bgEZbUiZaHU4A'
   const { createClient } = supabase
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
@@ -644,7 +644,7 @@
 
   function renderDocument(doc, items, profile) {
     const logoWrap = document.getElementById('logo-wrap')
-    logoWrap.innerHTML = `<img src="https://ygdcbkhaqsaiyymxvrph.supabase.co/storage/v1/object/public/company-assets/logos/46adc746-1a88-4361-a833-9e2a73a111ad.png" alt="logo" crossorigin="anonymous" onerror="this.parentElement.innerHTML='<span style=font-size:28px>🏢</span>'"/>`
+    logoWrap.innerHTML = `<img src="https://jiwpbwfbkblsfymouzsn.supabase.co/storage/v1/object/public/company-assets/logo.png" alt="logo" crossorigin="anonymous" onerror="this.parentElement.innerHTML='<span style=font-size:28px>🏢</span>'"/>`
 
     const contactParts = []
     if (profile.phone) contactParts.push('📞 ' + profile.phone)
