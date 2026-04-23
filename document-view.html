@@ -516,8 +516,7 @@
       <!-- Footer -->
       <div class="doc-footer">
         <div class="footer-left">
-          สร้างโดยระบบ Kang Bang Document System<br/>
-          พิมพ์เมื่อ: <span id="footer-printed-at">—</span>
+          สร้างโดยระบบ Kang Bang Document System
         </div>
         <div class="footer-right">
           <span id="footer-doc-number">—</span><br/>
@@ -788,8 +787,6 @@
     document.getElementById('sig-seller-date').textContent = 'วันที่: ' + fmtDate(doc.issue_date)
     document.getElementById('sig-buyer-name').textContent  = doc.customer_name || 'ลูกค้า'
 
-    document.getElementById('footer-printed-at').textContent =
-      new Date().toLocaleString('th-TH', { dateStyle: 'long', timeStyle: 'short' })
     document.getElementById('footer-doc-number').textContent = doc.doc_number
     document.title = `${DOC_TYPE_LABEL[doc.doc_type]} ${doc.doc_number} — Kang Bang`
   }
