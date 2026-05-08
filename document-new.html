@@ -6,12 +6,17 @@
   <title>สร้างเอกสาร — Kang Bang</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
     body { font-family: 'Sarabun', sans-serif; }
     .autocomplete-list { max-height: 220px; overflow-y: auto; }
     .autocomplete-item:hover { background: #f0fdf4; }
     .item-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+    .drag-handle { cursor: grab; touch-action: none; user-select: none; }
+    .drag-handle:active { cursor: grabbing; }
+    .sortable-ghost td, .sortable-ghost { opacity: 0.4; background: #f0fdf4 !important; border-radius: 12px; }
+    .sortable-chosen { background: #f9fafb; }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-28">
@@ -160,6 +165,7 @@
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-gray-50 border-b border-gray-100">
+              <th class="w-6"></th>
               <th class="text-left px-3 py-2.5 text-gray-500 font-semibold text-xs w-8">#</th>
               <th class="text-left px-3 py-2.5 text-gray-500 font-semibold text-xs w-28">รหัส</th>
               <th class="text-left px-3 py-2.5 text-gray-500 font-semibold text-xs">รายการ</th>
@@ -513,6 +519,9 @@
       } else {
         tbody.innerHTML = items.map((item, idx) => `
           <tr class="border-b border-gray-50" id="item-row-${idx}">
+            <td class="px-1 py-2 text-center">
+              <span class="drag-handle text-gray-300 text-lg block leading-none select-none" title="ลากเพื่อเรียงลำดับ">⠿</span>
+            </td>
             <td class="px-3 py-2 text-gray-400 text-xs">${idx + 1}</td>
             <td class="px-3 py-2">
               <input type="text" value="${escHtml(item.product_code)}" placeholder="รหัส" data-field="product_code" data-idx="${idx}"
@@ -577,7 +586,10 @@
         container.innerHTML = items.map((item, idx) => `
           <div class="item-card" id="item-card-${idx}">
             <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-bold text-white bg-green-600 rounded-full w-6 h-6 flex items-center justify-center">${idx + 1}</span>
+              <div class="flex items-center gap-2">
+                <span class="drag-handle text-gray-300 text-2xl leading-none px-1 select-none" title="ลากเพื่อเรียงลำดับ">⠿</span>
+                <span class="text-xs font-bold text-white bg-green-600 rounded-full w-6 h-6 flex items-center justify-center">${idx + 1}</span>
+              </div>
               <button onclick="removeItem(${idx})" class="text-red-400 hover:text-red-600 text-xl w-8 h-8 flex items-center justify-center rounded-xl hover:bg-red-50">&times;</button>
             </div>
             <div class="grid grid-cols-2 gap-2 mb-2">
@@ -649,6 +661,41 @@
             </div>
           </div>`).join('')
       }
+
+      initSortable()
+    }
+
+    let _sortableDesktop = null
+    let _sortableMobile  = null
+
+    function initSortable() {
+      if (_sortableDesktop) { _sortableDesktop.destroy(); _sortableDesktop = null }
+      if (_sortableMobile)  { _sortableMobile.destroy();  _sortableMobile  = null }
+      if (!items.length) return
+
+      const onEnd = function(evt) {
+        if (evt.oldIndex === evt.newIndex) return
+        const moved = items.splice(evt.oldIndex, 1)[0]
+        items.splice(evt.newIndex, 0, moved)
+        renderItems()
+        calcTotal()
+      }
+
+      _sortableDesktop = Sortable.create(document.getElementById('items-tbody-desktop'), {
+        handle: '.drag-handle',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        onEnd,
+      })
+
+      _sortableMobile = Sortable.create(document.getElementById('items-cards-mobile'), {
+        handle: '.drag-handle',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        onEnd,
+      })
     }
 
     function updateItem(idx, field, value) {
